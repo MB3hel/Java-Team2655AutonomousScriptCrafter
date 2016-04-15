@@ -27,6 +27,7 @@ import javax.swing.text.PlainDocument;
 import com.sun.glass.events.KeyEvent;
 
 import team2655.scriptcrafter.engine.CSVController;
+import team2655.scriptcrafter.listener.CommandsListener;
 import team2655.scriptcrafter.values.Values;
 
 public class ConfigEditor extends JDialog implements WindowListener, Values {
@@ -34,13 +35,16 @@ public class ConfigEditor extends JDialog implements WindowListener, Values {
 	private static final long serialVersionUID = 889547632847065343L;
 	private JScrollPane scrollPane;
 	private JTable table;
+	private ScriptCrafter scriptCrafter;
 		
 	Thread autoRowThread;
 	
-	public ConfigEditor(){
+	public ConfigEditor(ScriptCrafter scriptCrafter){
+		
+		this.scriptCrafter = scriptCrafter;
 		
 		table = new JTable();
-		table.setPreferredScrollableViewportSize(new Dimension(500, 500));
+		table.setPreferredScrollableViewportSize(new Dimension(500, 300));
 		
 		scrollPane = new JScrollPane(table);
 		getContentPane().add(scrollPane, BorderLayout.CENTER);
@@ -116,6 +120,7 @@ public class ConfigEditor extends JDialog implements WindowListener, Values {
 		table.getTableHeader().setReorderingAllowed(false);
 	    table.getTableHeader().setResizingAllowed(false);
 	    table.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
+	    table.setSelectionModel(new ForcedListSelectionModel());
 	    
 	    setupKeyBindings();
 	    
@@ -146,23 +151,7 @@ public class ConfigEditor extends JDialog implements WindowListener, Values {
 		
 		table.getInputMap().clear();
 		
-		table.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "ENTER");
-	    table.getActionMap().put("ENTER", new AbstractAction(){
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				
-				CellEditor editor = table.getCellEditor();
-				
-				if(editor != null){
-					
-					editor.stopCellEditing();
-					
-				}
-				
-			}
-	    	
-	    });
+		table.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "ROW_DOWN");
 		
 		table.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.SHIFT_DOWN_MASK), "UP");
 	    table.getActionMap().put("UP", new AbstractAction(){
@@ -475,7 +464,9 @@ public class ConfigEditor extends JDialog implements WindowListener, Values {
 			}
 			
 			CSVController.saveConfigFile(getCommands(), getArguments(), getArgumentNames(), getSecondArguments(), getSecondArgumentNames());
-		
+			
+			((CommandsListener)scriptCrafter).commandsChanged();
+			
 		}catch(Exception e){
 			
 			
