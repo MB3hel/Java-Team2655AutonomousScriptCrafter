@@ -582,45 +582,75 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 	    @Override
 	    public boolean isCellEditable(int row, int column) {
 	    	
-	        try{
+	        if(row == -1){
 	        	
-	        	if(column == 1){
-	        		
-	        		ArrayList<String> commands = new ArrayList<>(Arrays.asList(CSVController.loadCommands()));
-        			ArrayList<String> arguments = new ArrayList<>(Arrays.asList(CSVController.loadArguments()));
-        			String command = ((DefaultTableModel)table.getModel()).getValueAt(row,  0).toString();
-        			
-		        	String argType = arguments.get(commands.indexOf(command));
+	        	return false;
+	        	
+	        }else{
+	        	
+	        	try{
 		        	
-		        	if(argType.equals(ARGUMENT_TYPE_NONE) || argType.trim().equals("") || command.trim().equals("")){
+		        	if(column == 1){
 		        		
-		        		return false;
+		        		ArrayList<String> commands = new ArrayList<>(Arrays.asList(CSVController.loadCommands()));
+	        			ArrayList<String> arguments = new ArrayList<>(Arrays.asList(CSVController.loadArguments()));
+	        			String command = ((DefaultTableModel)table.getModel()).getValueAt(row,  0).toString();
+	        			
+	        			String argType = "";
+	        			
+			        	try{
+			        				
+			        		argType = arguments.get(commands.indexOf(command));
+			        				
+			        	}catch(Exception e){
+			        		
+			        		
+			        		
+			        	}
+			        	
+			        	if(argType.equals(ARGUMENT_TYPE_NONE) || argType.trim().equals("")){
+			        		
+			        		return false;
+			        		
+			        	}
 		        		
-		        	}
-	        		
-	        	}else if(column == 2){
-	        				        	
-	        		ArrayList<String> commands = new ArrayList<>(Arrays.asList(CSVController.loadCommands()));
-        			ArrayList<String> arguments = new ArrayList<>(Arrays.asList(CSVController.loadSecondArguments()));
-        			String command = ((DefaultTableModel)table.getModel()).getValueAt(row,  0).toString();
-        			
-		        	String argType = arguments.get(commands.indexOf(command));
-		        	
-		        	if(argType.equals(ARGUMENT_TYPE_NONE) || argType.trim().equals("") || command.trim().equals("")){
-		        		
-		        		return false;
+		        	}else if(column == 2){
+		        				        	
+		        		ArrayList<String> commands = new ArrayList<>(Arrays.asList(CSVController.loadCommands()));
+	        			ArrayList<String> arguments = new ArrayList<>(Arrays.asList(CSVController.loadSecondArguments()));
+	        			String command = ((DefaultTableModel)table.getModel()).getValueAt(row,  0).toString();
+	        			
+			        	String argType = "";
+			        			
+			        	try{
+			        				
+			        		argType = arguments.get(commands.indexOf(command));
+			        				
+			        	}catch(Exception e){
+			        		
+			        		
+			        		
+			        	}
+			        	
+			        	if(argType.equals(ARGUMENT_TYPE_NONE) || argType.trim().equals("")){
+			        		
+			        		return false;
+			        		
+			        	}
+			        	
+			        	return true;
 		        		
 		        	}
 		        	
 		        	return true;
-	        		
-	        	}
-	        	
-	        	return true;
-	        	
-	        }catch(Exception e){
-	        	
-	        	return true;
+		        	
+		        }catch(Exception e){
+		        	
+		        	e.printStackTrace();
+		        	
+		        	return true;
+		        	
+		        }
 	        	
 	        }
 	        
