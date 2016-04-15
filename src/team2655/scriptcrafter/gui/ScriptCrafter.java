@@ -293,6 +293,8 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 	
 	private void setupTable(){
 		
+		table.setModel(new EditabeByArgumentTypeModel());
+		
 		DefaultTableModel model = (DefaultTableModel)table.getModel();
 		
 		model.addColumn("Command");
@@ -565,6 +567,65 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 	        
 	    }
 
+	}
+	
+	public class EditabeByArgumentTypeModel extends DefaultTableModel {
+		
+		private static final long serialVersionUID = -3260475730036854273L;
+
+		private EditabeByArgumentTypeModel() {
+	    	
+	        super();
+	        
+	    }
+
+	    @Override
+	    public boolean isCellEditable(int row, int column) {
+	    	
+	        try{
+	        	
+	        	if(column == 1){
+	        		
+	        		ArrayList<String> commands = new ArrayList<>(Arrays.asList(CSVController.loadCommands()));
+        			ArrayList<String> arguments = new ArrayList<>(Arrays.asList(CSVController.loadArguments()));
+        			String command = ((DefaultTableModel)table.getModel()).getValueAt(row,  0).toString();
+        			
+		        	String argType = arguments.get(commands.indexOf(command));
+		        	
+		        	if(argType.equals(ARGUMENT_TYPE_NONE) || argType.trim().equals("") || command.trim().equals("")){
+		        		
+		        		return false;
+		        		
+		        	}
+	        		
+	        	}else if(column == 2){
+	        				        	
+	        		ArrayList<String> commands = new ArrayList<>(Arrays.asList(CSVController.loadCommands()));
+        			ArrayList<String> arguments = new ArrayList<>(Arrays.asList(CSVController.loadSecondArguments()));
+        			String command = ((DefaultTableModel)table.getModel()).getValueAt(row,  0).toString();
+        			
+		        	String argType = arguments.get(commands.indexOf(command));
+		        	
+		        	if(argType.equals(ARGUMENT_TYPE_NONE) || argType.trim().equals("") || command.trim().equals("")){
+		        		
+		        		return false;
+		        		
+		        	}
+		        	
+		        	return true;
+	        		
+	        	}
+	        	
+	        	return true;
+	        	
+	        }catch(Exception e){
+	        	
+	        	return true;
+	        	
+	        }
+	        
+	    }
+	    
 	}
 
 	@Override

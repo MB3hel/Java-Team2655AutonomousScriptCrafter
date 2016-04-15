@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.ArrayList;
@@ -109,6 +111,8 @@ public class ConfigEditor extends JDialog implements WindowListener, Values {
 	
 	private void setupTable(){
 		
+		table.setModel(new EditabeByArgumentTypeModel());
+		
 		DefaultTableModel model = (DefaultTableModel)table.getModel();
 		
 		model.addColumn("Command");
@@ -124,7 +128,45 @@ public class ConfigEditor extends JDialog implements WindowListener, Values {
 	    
 	    setupKeyBindings();
 	    
-	    JComboBox<String> comboBox = new JComboBox<>(ARGUMENT_TYPES);
+	    JComboBox<String> comboBoxRow1 = new JComboBox<>(ARGUMENT_TYPES);
+	    comboBoxRow1.addItemListener(new ItemListener(){
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				
+				if(e.getStateChange() == ItemEvent.SELECTED){
+					
+					if(comboBoxRow1.getSelectedItem().toString().equals(ARGUMENT_TYPE_NONE) || comboBoxRow1.getSelectedItem().toString().trim().equals("")){
+						
+						((DefaultTableModel)table.getModel()).setValueAt("", table.getSelectedRow(), 2);
+						
+					}
+					
+				}
+				
+			}
+	    	
+	    });
+	    
+	    JComboBox<String> comboBoxRow3 = new JComboBox<>(ARGUMENT_TYPES);
+	    comboBoxRow3.addItemListener(new ItemListener(){
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				
+				if(e.getStateChange() == ItemEvent.SELECTED){
+					
+					if(comboBoxRow3.getSelectedItem().toString().equals(ARGUMENT_TYPE_NONE) || comboBoxRow3.getSelectedItem().toString().trim().equals("")){
+						
+						((DefaultTableModel)table.getModel()).setValueAt("", table.getSelectedRow(), 4);
+						
+					}
+					
+				}
+				
+			}
+	    	
+	    });
 	    
 	    JTextField lettersOnly = new JTextField();
 	    lettersOnly.setDocument(new AlphabetDocument());
@@ -136,10 +178,10 @@ public class ConfigEditor extends JDialog implements WindowListener, Values {
 	    argNameColumn.setCellEditor(new DefaultCellEditor(lettersOnly));
 	    
 	    TableColumn argColumn = table.getColumnModel().getColumn(1);
-	    argColumn.setCellEditor(new DefaultCellEditor(comboBox));
+	    argColumn.setCellEditor(new DefaultCellEditor(comboBoxRow1));
 	    
 	    TableColumn secondArgColumn = table.getColumnModel().getColumn(3);
-	    secondArgColumn.setCellEditor(new DefaultCellEditor(comboBox));
+	    secondArgColumn.setCellEditor(new DefaultCellEditor(comboBoxRow3));
 	    
 	    TableColumn secondNameColumn = table.getColumnModel().getColumn(4);
 	    secondNameColumn.setCellEditor(new DefaultCellEditor(lettersOnly));
@@ -541,6 +583,61 @@ public class ConfigEditor extends JDialog implements WindowListener, Values {
 		    	
 		}
 
+	}
+	
+	public class EditabeByArgumentTypeModel extends DefaultTableModel {
+		
+		private static final long serialVersionUID = -3260475730036854273L;
+
+		private EditabeByArgumentTypeModel() {
+	    	
+	        super();
+	        
+	    }
+
+	    @Override
+	    public boolean isCellEditable(int row, int column) {
+	    	
+	        try{
+	        	
+	        	if(column == 2){
+	        		
+	        		DefaultTableModel model = (DefaultTableModel)table.getModel();
+		        	
+		        	String argType = model.getValueAt(row, 1).toString();
+		        	
+		        	if(argType.equals(ARGUMENT_TYPE_NONE) || argType.trim().equals("")){
+		        		
+		        		return false;
+		        		
+		        	}
+	        		
+	        	}else if(column == 4){
+	        		
+	        		DefaultTableModel model = (DefaultTableModel)table.getModel();
+		        	
+		        	String argType = model.getValueAt(row, 3).toString();
+		        	
+		        	if(argType.equals(ARGUMENT_TYPE_NONE) || argType.trim().equals("")){
+		        		
+		        		return false;
+		        		
+		        	}
+		        	
+		        	return true;
+	        		
+	        	}
+	        	
+	        	return true;
+	        	
+	        }catch(Exception e){
+	        	
+	        	return true;
+	        	
+	        }
+	        
+	    }
+	    
 	}
 	
 }
