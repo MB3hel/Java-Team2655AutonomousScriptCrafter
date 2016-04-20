@@ -11,6 +11,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
 public class CSVController {
@@ -18,9 +20,10 @@ public class CSVController {
 	private static File routinesDir = new File(System.getProperty("user.home") + "/Desktop/Autonomous/");
 	private static File userBackupDir = new File(System.getProperty("user.home") + "/Autonomous-BAK/");
 	private static File systemBackupDir = new File(System.getenv("PUBLIC") + "/Autonomous-BAK/");
+	private static File backupFile = new File(System.getProperty("user.home") + "/Desktop/Autonomous/Backup/");
 	private static File deleteBackupsDir = new File(System.getProperty("user.home") + "/Desktop/Autonomous/Deleted/");
 	
-	private static File[] routineDirs = {routinesDir, userBackupDir, systemBackupDir};
+	private static File[] routineDirs = {routinesDir, userBackupDir, systemBackupDir, backupFile};
 	
 	public static void createScript(String name) throws IOException{
 				
@@ -28,7 +31,7 @@ public class CSVController {
 			
 			File script = new File(dir.getAbsolutePath() + "/" + name + ".csv");
 			
-			script.mkdirs();
+			script.getParentFile().mkdirs();
 			script.createNewFile();
 			
 		}
@@ -45,7 +48,7 @@ public class CSVController {
 			
 			for(int r = 0; r < model.getRowCount(); r++){
 				
-				for(int c = 0; c < model.getRowCount(); r++){
+				for(int c = 0; c < model.getColumnCount(); c++){
 					
 					Object cellValue = model.getValueAt(r, c);
 					
@@ -63,13 +66,13 @@ public class CSVController {
 						
 					}
 					
-					writer.close();
-					
 				}
 				
 				writer.newLine();
 				
 			}
+			
+			writer.close();
 			
 		}
 		
@@ -94,16 +97,27 @@ public class CSVController {
 		
 	}
 	
-	public static void renameFile(String currentName, String newName){
+	public static boolean renameFile(String currentName, String newName){
 				
 		for(File dir : routineDirs){
 			
 			File script = new File(dir.getAbsolutePath() + "/" + currentName + ".csv");
 			File newScript = new File(dir.getAbsolutePath() + "/" + newName + ".csv");
 			
-			script.renameTo(newScript);
+			if(newScript.exists()){
+				
+				JOptionPane.showMessageDialog(new JDialog(), "That file already exists. Please choose a different name.", "File Exists!", JOptionPane.WARNING_MESSAGE);
+				return false;
+				
+			}else{
+				
+				script.renameTo(newScript);
+				
+			}
 			
 		}
+		
+		return true;
 		
 	}
 	
@@ -131,9 +145,23 @@ public class CSVController {
 			
 		}
 		
+		if(model.getValueAt(0, 0).equals("")){
+			
+			if(model.getValueAt(0, 1).equals("")){
+				
+				if(model.getValueAt(0, 2).equals("")){
+					
+					model.removeRow(0);
+					
+				}
+				
+			}
+			
+		}
+		
 	}
 	
-	public String[] listScripts(){
+	public static String[] listScripts(){
 				
 		return routinesDir.list();
 		
