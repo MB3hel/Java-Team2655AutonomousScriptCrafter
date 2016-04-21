@@ -4,8 +4,11 @@ package team2655.scriptcrafter.gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -35,6 +38,8 @@ public class RenameRoutineDialog extends JDialog implements ActionListener {
 		this.manager = manager;
 		this.originalName = originalName;
 		
+		System.out.println("GOT ORIG: " + originalName);
+				
 		mainPanel = new JPanel();
 		getContentPane().add(mainPanel, BorderLayout.CENTER);
 		mainPanel.setLayout(new BorderLayout(0, 0));
@@ -62,6 +67,23 @@ public class RenameRoutineDialog extends JDialog implements ActionListener {
 		cancelButton.addActionListener(this);
 		saveButton.addActionListener(this);
 		
+		KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
+			
+		      @Override
+		      public boolean dispatchKeyEvent(KeyEvent e) {
+		    	  
+		    	  if(e.getKeyCode() == KeyEvent.VK_ENTER && e.getID() == KeyEvent.KEY_RELEASED){
+		    		  	doRename();
+				        return true;
+		    		  
+		    	  }
+		    	  
+		    	  return false; //Sends key events to other components if false is returned
+		        
+		      }
+		      
+		});
+		
 		this.pack();
 		this.setLocationRelativeTo(null);
 		this.setTitle("New Routine");
@@ -80,22 +102,29 @@ public class RenameRoutineDialog extends JDialog implements ActionListener {
 			this.dispose();
 			
 		}else if(src == saveButton){
-			try{
-				
-				boolean rtn = CSVController.renameFile(originalName, fileName.getText());
-				
-				if(rtn){
-					
-					manager.rescanFiles(fileName.getText());
-					this.dispose();
-					
-				}
 			
-			}catch(Exception ex){
+			doRename();
+			
+		}
+		
+	}
+	
+	private void doRename(){
+		
+		try{
+			System.out.println("CLASS ORIG: " + originalName);
+			boolean rtn = CSVController.renameFile(originalName, fileName.getText());
+			
+			if(rtn){
 				
-				
+				manager.rescanFiles(fileName.getText());
+				this.dispose();
 				
 			}
+		
+		}catch(Exception ex){
+			
+			
 			
 		}
 		

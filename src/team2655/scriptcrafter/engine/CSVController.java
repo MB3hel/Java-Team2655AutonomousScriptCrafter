@@ -1,5 +1,7 @@
 package team2655.scriptcrafter.engine;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -23,7 +25,42 @@ public class CSVController {
 	private static File backupFile = new File(System.getProperty("user.home") + "/Desktop/Autonomous/Backup/");
 	private static File deleteBackupsDir = new File(System.getProperty("user.home") + "/Desktop/Autonomous/Deleted/");
 	
-	private static File[] routineDirs = {routinesDir, userBackupDir, systemBackupDir, backupFile};
+	private static File[] routineDirs = {routinesDir}; //Routine non-backup locations
+	private static File[] routineDirsBackups = {userBackupDir, systemBackupDir, backupFile}; //Backup locations
+	
+	public static void doBackup() throws IOException, FileNotFoundException{
+		
+		File[] files = routinesDir.listFiles();
+		
+		for(File file : files){
+			
+			for(File dir : routineDirsBackups){
+				
+				try {
+					
+					BufferedInputStream reader = new BufferedInputStream(new FileInputStream(file));
+					BufferedOutputStream writer = new BufferedOutputStream(new FileOutputStream(new File(dir.getAbsolutePath() + "/" + file.getName())));
+					
+					while(reader.available() > 0){
+						
+						writer.write(reader.read());
+						
+					}
+					
+					reader.close();
+					writer.close();
+					
+				} catch (Exception e) {
+					
+
+					
+				}
+
+			}
+			
+		}
+		
+	}
 	
 	public static void createScript(String name) throws IOException{
 				
@@ -33,6 +70,16 @@ public class CSVController {
 			
 			script.getParentFile().mkdirs();
 			script.createNewFile();
+			
+		}
+		
+		try{
+			
+			doBackup();
+			
+		}catch(Exception e){
+			
+			JOptionPane.showMessageDialog(new JDialog(), "The automatic backup failed.", "Backup failed.", JOptionPane.WARNING_MESSAGE);
 			
 		}
 		
@@ -76,6 +123,16 @@ public class CSVController {
 			
 		}
 		
+		try{
+			
+			doBackup();
+			
+		}catch(Exception e){
+			
+			JOptionPane.showMessageDialog(new JDialog(), "The automatic backup failed.", "Backup failed.", JOptionPane.WARNING_MESSAGE);
+			
+		}
+		
 	}
 	
 	public static void deleteFile(String name) throws FileNotFoundException, IOException{
@@ -98,7 +155,7 @@ public class CSVController {
 	}
 	
 	public static boolean renameFile(String currentName, String newName){
-				
+		
 		for(File dir : routineDirs){
 			
 			File script = new File(dir.getAbsolutePath() + "/" + currentName + ".csv");
@@ -117,12 +174,28 @@ public class CSVController {
 			
 		}
 		
+		try{
+			
+			doBackup();
+			
+		}catch(Exception e){
+			
+			JOptionPane.showMessageDialog(new JDialog(), "The automatic backup failed.", "Backup failed.", JOptionPane.WARNING_MESSAGE);
+			
+		}
+		
 		return true;
 		
 	}
 	
 	public static void loadScript(String name, DefaultTableModel model) throws FileNotFoundException, IOException{
-				
+		
+		for(int r = 0; r < model.getRowCount(); r++){
+			
+			model.removeRow(r);
+			
+		}
+		
 		File script = new File(routinesDir.getAbsolutePath() + "/" + name + ".csv");
 		
 		BufferedReader in = new BufferedReader(new FileReader(script));
@@ -137,21 +210,25 @@ public class CSVController {
 		
 		in.close();
 		
-		for(String line : lines){
+		if(lines.size() > 0){
 			
-			String[] columns = line.split(",");
-			
-			model.addRow(columns);
-			
-		}
-		
-		if(model.getValueAt(0, 0).equals("")){
-			
-			if(model.getValueAt(0, 1).equals("")){
+			for(String line : lines){
 				
-				if(model.getValueAt(0, 2).equals("")){
+				String[] columns = line.split(",");
+				
+				model.addRow(columns);
+				
+			}
+			
+			if(model.getValueAt(0, 0).equals("")){
+				
+				if(model.getValueAt(0, 1).equals("")){
 					
-					model.removeRow(0);
+					if(model.getValueAt(0, 2).equals("")){
+						
+						model.removeRow(0);
+						
+					}
 					
 				}
 				

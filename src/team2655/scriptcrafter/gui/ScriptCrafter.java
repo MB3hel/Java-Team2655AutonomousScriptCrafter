@@ -11,7 +11,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -54,6 +53,7 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 	private JButton btnEditCommands;
 	private String[] commands = new String[0];
 	private String lastFileSelected = "";  //Stores the name of the previously selected file if the refresh button is pressed
+	private final static String fileNameRegex = "^[a-zA-Z0-9_-]+$";
 	
 	Thread autoRowThread;
 	private JPanel filePanel;
@@ -259,6 +259,17 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 		this.pack();
 		this.setLocationRelativeTo(null);
 		this.setVisible(true);
+		
+		try{
+			
+			CSVController.doBackup();
+			
+		}catch(Exception e){
+			
+			JOptionPane.showMessageDialog(new JDialog(), "The automatic backup failed.", "Backup failed.", JOptionPane.WARNING_MESSAGE);
+			e.printStackTrace();
+			
+		}
 		
 	}
 	
@@ -510,11 +521,57 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 			
 		}else if(src == btnFileNew){
 			
-			new NewRoutineDialog(this);
+			try{
+				
+				Object returned = JOptionPane.showInputDialog(new JDialog(), "New file name: ", "Create New File ", JOptionPane.QUESTION_MESSAGE);
+				
+				if(returned != null){
+					
+					if(returned.toString().matches(fileNameRegex)){
+						
+						CSVController.createScript(returned.toString());
+													
+						rescanFiles(returned.toString());
+						
+					}else{
+						
+						JOptionPane.showMessageDialog(new JDialog(), "Invalid file name. File names can only contain letters, numbers and dashes or underscores.", "Invalid Name!", JOptionPane.WARNING_MESSAGE);
+						
+					}
+					
+				}
+				
+			}catch(Exception er){
+				
+				
+				
+			}
 			
 		}else if(src == btnFileRename){
 			
-			new RenameRoutineDialog(this, fileSelector.getSelectedItem().toString());
+			//new RenameRoutineDialog(this, fileSelector.getSelectedItem().toString());
+			
+			Object returned = JOptionPane.showInputDialog(new JDialog(), "Rename to: ", "Rename " + fileSelector.getSelectedItem().toString(), JOptionPane.QUESTION_MESSAGE, null, null, fileSelector.getSelectedItem().toString());
+			
+			if(returned != null){
+				
+				if(returned.toString().matches(fileNameRegex)){
+					
+					boolean done = CSVController.renameFile(fileSelector.getSelectedItem().toString(), returned.toString());
+					
+					if(done){
+						
+						rescanFiles(returned.toString());
+						
+					}
+					
+				}else{
+					
+					JOptionPane.showMessageDialog(new JDialog(), "Invalid file name. File names can only contain letters, numbers and dashes or underscores.", "Invalid Name!", JOptionPane.WARNING_MESSAGE);
+					
+				}
+				
+			}
 			
 		}
 		
@@ -530,7 +587,7 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 	@Override
 	public void windowClosing(WindowEvent e) {
 		
-		autoRowThread.stop();
+		autoRowThread.suspend();
 		removeBlankRows();
 		
 		try {
@@ -538,11 +595,18 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 			CSVController.saveFile(fileSelector.getSelectedItem().toString(), (DefaultTableModel)table.getModel());
 			System.exit(0);
 			
-		} catch (IOException er) {
+		} catch (Exception er) {
 			
-			JOptionPane.showMessageDialog(new JDialog(), "The file was not saved.", "Save Error!", JOptionPane.ERROR_MESSAGE);
+			int returned = JOptionPane.showConfirmDialog(new JDialog(), "The file was not saved. Exit anyways?", "Save Error!", JOptionPane.ERROR_MESSAGE);
 			er.printStackTrace();
-			autoRowThread.start();
+			if(returned == JOptionPane.YES_OPTION){
+				
+				System.exit(0);
+				
+			}else{
+				
+				autoRowThread.resume();				
+			}
 			
 		}
 		
