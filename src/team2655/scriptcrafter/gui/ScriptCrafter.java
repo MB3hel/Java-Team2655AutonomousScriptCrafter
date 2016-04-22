@@ -12,9 +12,11 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.CellEditor;
 import javax.swing.DefaultCellEditor;
@@ -285,6 +287,16 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 		}
 		
 		autoRowThread.start();
+		
+		try{
+			
+			this.setIconImage(ImageIO.read(new File("./img/icon.png")));
+			
+		}catch(Exception e){
+			
+			
+			
+		}
 		
 		this.setTitle("Script Crafter Version: " + VERSION_MAJOR + "." + VERSION_MINOR + "." + VERSION_BUILD);
 		this.addWindowListener(this);
