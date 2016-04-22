@@ -1,8 +1,11 @@
 package team2655.scriptcrafter.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -14,13 +17,18 @@ import javax.swing.AbstractAction;
 import javax.swing.CellEditor;
 import javax.swing.DefaultCellEditor;
 import javax.swing.DefaultListSelectionModel;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
+import javax.swing.border.LineBorder;
+import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.text.AttributeSet;
@@ -32,12 +40,18 @@ import team2655.scriptcrafter.engine.CSVController;
 import team2655.scriptcrafter.listener.CommandsListener;
 import team2655.scriptcrafter.values.Values;
 
-public class ConfigEditor extends JDialog implements WindowListener, Values {
+public class ConfigEditor extends JDialog implements WindowListener, Values, ActionListener {
 
 	private static final long serialVersionUID = 889547632847065343L;
 	private JScrollPane scrollPane;
 	private JTable table;
 	private ScriptCrafter scriptCrafter;
+	private JPanel bottomPanel;
+	private JButton btnSave;
+	private JButton btnDiscard;
+	private JButton btnUp;
+	private JButton btnDown;
+	private JButton btnDelete;
 		
 	Thread autoRowThread;
 	
@@ -57,6 +71,26 @@ public class ConfigEditor extends JDialog implements WindowListener, Values {
 		
 		setupTable();
 		setupValues();
+		
+		bottomPanel = new JPanel();
+		bottomPanel.setBorder(new TitledBorder(new LineBorder(new Color(0, 0, 0)), "Onscreen Controls", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		getContentPane().add(bottomPanel, BorderLayout.SOUTH);
+		bottomPanel.setLayout(new GridLayout(0, 5, 0, 0));
+				
+		btnSave = new JButton("Save");
+		bottomPanel.add(btnSave);
+		
+		btnDiscard = new JButton("Discard");
+		bottomPanel.add(btnDiscard);
+		
+		btnUp = new JButton("Up");
+		bottomPanel.add(btnUp);
+		
+		btnDown = new JButton("Down");
+		bottomPanel.add(btnDown);
+		
+		btnDelete = new JButton("Delete");
+		bottomPanel.add(btnDelete);
 		
 		autoRowThread = new Thread(){
 			
@@ -96,16 +130,28 @@ public class ConfigEditor extends JDialog implements WindowListener, Values {
 			
 		};
 		
+		setupButtons();
+		
 		autoRowThread.start();
 		
+		this.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 		this.addWindowListener(this);
-		this.setAlwaysOnTop(true);
-		this.setTitle("Configure");
+		this.setTitle("Configure Commands");
 		this.pack();
 		this.setLocationRelativeTo(null);
 		this.setVisible(true);
 		this.setAlwaysOnTop(true);
 		this.requestFocus();
+		
+	}
+	
+	private void setupButtons(){
+		
+		btnSave.addActionListener(this);
+		btnDiscard.addActionListener(this);
+		btnUp.addActionListener(this);
+		btnDown.addActionListener(this);
+		btnDelete.addActionListener(this);
 		
 	}
 	
@@ -201,15 +247,7 @@ public class ConfigEditor extends JDialog implements WindowListener, Values {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				
-				int row = table.getSelectedRow();
-				
-				if(row > 0){
-					
-					((DefaultTableModel)table.getModel()).moveRow(row, row, row - 1);
-					
-					table.getSelectionModel().setSelectionInterval(row - 1,  row - 1);
-					
-				}
+				moveRowUp();
 				
 			}
 	    	
@@ -221,15 +259,7 @@ public class ConfigEditor extends JDialog implements WindowListener, Values {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				
-				int row = table.getSelectedRow();
-				
-				if(row < table.getRowCount() - 1){
-					
-					((DefaultTableModel)table.getModel()).moveRow(row, row, row + 1);
-					
-					table.getSelectionModel().setSelectionInterval(row + 1,  row + 1);
-					
-				}
+				moveRowDown();
 				
 			}
 	    	
@@ -277,13 +307,7 @@ public class ConfigEditor extends JDialog implements WindowListener, Values {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				
-				int row = table.getSelectedRow();
-				
-				if(row >= 0){
-										
-					((DefaultTableModel)table.getModel()).removeRow(row);
-					
-				}
+				deleteRow();
 				
 			}
 	    	
@@ -491,7 +515,59 @@ public class ConfigEditor extends JDialog implements WindowListener, Values {
 	@Override
 	public void windowClosing(WindowEvent arg0) {
 		
-		autoRowThread.stop();
+		JDialog dialog = new JDialog();
+		dialog.setLocationRelativeTo(null);
+		dialog.setAlwaysOnTop(true);
+		dialog.setVisible(true);
+		
+		int rtn = JOptionPane.showConfirmDialog(dialog, "Save before exit?", "Save?", JOptionPane.YES_NO_CANCEL_OPTION);
+		dialog.dispose();
+		if(rtn == JOptionPane.YES_OPTION){
+			
+			autoRowThread.suspend();
+			removeBlankRows();
+			
+			try {
+				
+				CellEditor editor = table.getCellEditor();
+				
+				if(editor != null){
+					
+					editor.stopCellEditing();
+					
+				}
+				
+				CSVController.saveConfigFile(getCommands(), getArguments(), getArgumentNames(), getSecondArguments(), getSecondArgumentNames());
+				
+				((CommandsListener)scriptCrafter).commandsChanged();
+				this.dispose();
+				
+			} catch (Exception er) {
+				
+				int returned = JOptionPane.showConfirmDialog(new JDialog(), "The file was not saved (is the river station open?). Exit anyways (will discard changes)?", "Save Error!", JOptionPane.ERROR_MESSAGE);
+				er.printStackTrace();
+				if(returned == JOptionPane.YES_OPTION){
+					
+					this.dispose();
+					
+				}else{
+					
+					autoRowThread.resume();				
+				}
+				
+			}
+			
+			autoRowThread.resume();	
+			
+		}else if(rtn == JOptionPane.NO_OPTION){
+			
+			this.dispose();
+			
+		}
+		
+	}
+	
+	/*autoRowThread.stop();
 		
 		removeBlankRows();
 		
@@ -515,9 +591,7 @@ public class ConfigEditor extends JDialog implements WindowListener, Values {
 			
 		}
 		
-		this.dispose();
-		
-	}
+		this.dispose();*/
 
 	@Override
 	public void windowDeactivated(WindowEvent arg0) {}
@@ -638,6 +712,123 @@ public class ConfigEditor extends JDialog implements WindowListener, Values {
 	        
 	    }
 	    
+	}
+
+	@SuppressWarnings("deprecation")
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		
+		Object src = e.getSource();
+		
+		if(src == btnSave){
+			
+			autoRowThread.suspend();
+			removeBlankRows();
+			
+			try {
+				
+				CellEditor editor = table.getCellEditor();
+				
+				if(editor != null){
+					
+					editor.stopCellEditing();
+					
+				}
+				
+				CSVController.saveConfigFile(getCommands(), getArguments(), getArgumentNames(), getSecondArguments(), getSecondArgumentNames());
+				
+				((CommandsListener)scriptCrafter).commandsChanged();
+				
+			} catch (Exception er) {
+				
+				JOptionPane.showMessageDialog(new JDialog(), "The file was not saved (is the river station open?).", "Save Error!", JOptionPane.ERROR_MESSAGE);
+				er.printStackTrace();
+				
+			}
+			
+			autoRowThread.resume();
+			
+		}else if(src == btnDiscard){
+			
+			JDialog dialog = new JDialog();
+			dialog.setLocationRelativeTo(null);
+			dialog.setAlwaysOnTop(true);
+			dialog.setVisible(true);
+			
+			int rtn = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to discard ALL changes since the last save?", "Discard?", JOptionPane.YES_NO_CANCEL_OPTION);
+			dialog.dispose();
+			if(rtn == JOptionPane.YES_OPTION){
+				
+				try {
+					
+					DefaultTableModel model = (DefaultTableModel) table.getModel();
+     			   
+     			   	for (int i = model.getRowCount() - 1; i >= 0; i--) {
+     			   	
+     			   		model.removeRow(i);
+     			    
+     			   	}
+     			   	
+     			   	setupValues();
+     			   	
+				} catch (Exception er) {}
+				
+			}
+			
+		}else if(src == btnUp){
+			
+			moveRowUp();
+			
+		}else if(src == btnDown){
+			
+			moveRowDown();
+			
+		}else if(src == btnDelete){
+			
+			deleteRow();
+			
+		}
+		
+	}
+	
+	private void moveRowUp(){
+		
+		int row = table.getSelectedRow();
+		
+		if(row > 0){
+			
+			((DefaultTableModel)table.getModel()).moveRow(row, row, row - 1);
+			
+			table.getSelectionModel().setSelectionInterval(row - 1,  row - 1);
+			
+		}
+		
+	}
+	
+	private void moveRowDown(){
+		
+		int row = table.getSelectedRow();
+		
+		if(row < table.getRowCount() - 1){
+			
+			((DefaultTableModel)table.getModel()).moveRow(row, row, row + 1);
+			
+			table.getSelectionModel().setSelectionInterval(row + 1,  row + 1);
+			
+		}
+		
+	}
+	
+	private void deleteRow(){
+		
+		int row = table.getSelectedRow();
+		
+		if(row >= 0){
+								
+			((DefaultTableModel)table.getModel()).removeRow(row);
+			
+		}
+		
 	}
 	
 }
