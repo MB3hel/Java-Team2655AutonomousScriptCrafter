@@ -8,18 +8,20 @@ import java.util.ArrayList;
 
 public class CSVCheckEngine {
 	
-	public final static String ARGUMENT_TYPE_INTEGER = "INTEGER";
-	public final static String ARGUMENT_TYPE_NONE = "NONE";
+	public final static String ARGUMENT_TYPE_INTEGER = "Numeric";
+	public final static String ARGUMENT_TYPE_NONE = "None";
 	
 	String[] commands;
 	String[] argumentTypes;
+	String[] secArgTypes;
 	
 	int commandIndex = 0;
 	
-	public CSVCheckEngine(String[] commands, String[] argumentTypes){
+	public CSVCheckEngine(String[] commands, String[] argumentTypes, String[] secArgTypes){
 		
 		this.commands = commands;
 		this.argumentTypes = argumentTypes;
+		this.secArgTypes = secArgTypes;
 				
 	}
 	
@@ -36,12 +38,15 @@ public class CSVCheckEngine {
 			
 			boolean commandCorrect = checkCommand(columns[0]); //Check command MUST BE FIRST
 			boolean argumentCorrect = checkArgument(columns[1]); //Check argument
+			boolean secondArg = checkSecondArgument(columns[2]); //Check 2nd arg
 			
 			if(!commandCorrect)
 				dataString += "Line " + String.valueOf(row + 1) + ": Command Invalid!\n"; //Add error message
 				
 			if(!argumentCorrect)
-				dataString += "Line " + String.valueOf(row + 1) + ": Argument Invalid\n"; //Add error message
+				dataString += "Line " + String.valueOf(row + 1) + ": First Argument Invalid\n"; //Add error message
+			if(!secondArg)
+				dataString += "Line " + String.valueOf(row + 1) + ": Second Argument Invalid\n"; //Add error message
 			
 		}
 		
@@ -103,6 +108,39 @@ public class CSVCheckEngine {
 		boolean isArgument = false;
 		
 		String shouldBe = argumentTypes[commandIndex];
+		
+		
+		if(shouldBe.equals(ARGUMENT_TYPE_NONE) && (argument.equals("") || argument.equals(" "))){
+			
+			isArgument = true;
+		
+		}
+			
+		if(shouldBe.equals(ARGUMENT_TYPE_INTEGER)){
+
+			try{
+				
+				Double.parseDouble(argument);
+				
+				isArgument = true;
+				
+			}catch(NumberFormatException e){
+				
+				e.printStackTrace();
+				
+			}
+			
+		}
+		
+		return isArgument;
+		
+	}
+	
+	private boolean checkSecondArgument(String argument){
+		
+		boolean isArgument = false;
+		
+		String shouldBe = secArgTypes[commandIndex];
 		
 		if(shouldBe.equals(ARGUMENT_TYPE_NONE) && (argument.equals("") || argument.equals(" "))){
 			

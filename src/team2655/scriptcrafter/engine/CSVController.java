@@ -86,7 +86,7 @@ public class CSVController {
 	}
 	
 	public static void saveFile(String name, DefaultTableModel model) throws IOException{
-				
+		
 		for(File dir : routineDirs){
 			
 			File script = new File(dir.getAbsolutePath() + "/" + name + ".csv");
@@ -107,7 +107,7 @@ public class CSVController {
 					
 					writer.write((String)cellValue);
 					
-					if(c != model.getColumnCount()){
+					if(c + 1 != model.getColumnCount()){
 						
 						writer.write(",");
 						
@@ -133,12 +133,23 @@ public class CSVController {
 			
 		}
 		
+		checkScript(name, loadCommands(), loadArguments(), loadSecondArguments());
+		
 	}
 	
 	public static void deleteFile(String name) throws FileNotFoundException, IOException{
 		
 		File script = new File(routinesDir.getAbsolutePath() + "/" + name + ".csv");
 		File backup = new File(deleteBackupsDir.getAbsolutePath() + "/" + name + ".csv");
+		backup.getParentFile().mkdirs();
+		
+		if(backup.exists()){
+			
+			backup.delete();
+			
+		}
+		
+		backup.createNewFile();
 		
 		FileInputStream in = new FileInputStream(script);
 		FileOutputStream out = new FileOutputStream(backup);
@@ -151,6 +162,8 @@ public class CSVController {
 		
 		in.close();
 		out.close();
+		
+		script.delete();
 		
 	}
 	
@@ -189,8 +202,8 @@ public class CSVController {
 	}
 	
 	public static void loadScript(String name, DefaultTableModel model) throws FileNotFoundException, IOException{
-		
-		for(int r = 0; r < model.getRowCount(); r++){
+
+		for(int r = 0; r < model.getRowCount();r++){
 			
 			model.removeRow(r);
 			
@@ -236,6 +249,8 @@ public class CSVController {
 			
 		}
 		
+		checkScript(name, loadCommands(), loadArguments(), loadSecondArguments());
+		
 	}
 	
 	public static String[] listScripts(){
@@ -244,10 +259,16 @@ public class CSVController {
 		
 	}
 	
-	public static void checkScript(String scriptName, String[] commands, String[] arguments) throws IOException{
+	public static void checkScript(String scriptName, String[] commands, String[] arguments, String[] secArgs) throws IOException{
 		
-		CSVCheckEngine checkEngine = new CSVCheckEngine(commands, arguments);
-		checkEngine.checkFile(new File(routinesDir.getAbsolutePath()+ "/" + scriptName + ".csv"));
+		CSVCheckEngine checkEngine = new CSVCheckEngine(commands, arguments, secArgs);
+		String message = checkEngine.checkFile(new File(routinesDir.getAbsolutePath()+ "/" + scriptName + ".csv"));
+		
+		if(!message.trim().equals("")){
+			
+			JOptionPane.showMessageDialog(new JDialog(), message, "File Error!", JOptionPane.WARNING_MESSAGE);
+			
+		}
 		
 	}
 	
