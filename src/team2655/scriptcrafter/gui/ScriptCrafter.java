@@ -1,7 +1,9 @@
 /*
  * Version 1.0.1: Disabled second argument check and multi row select in main table
  * Version 1.0.2: Checking is tolerant of blank command and spelling of 'driver station' was fixed. Save popup on file selector was removed. Rescan for file selector does not discard all changes. If command with none argument types is selected the arguments with type none are cleared
+ * Version 1.0.3: Moved deleted and backup locations from autonomous to desktop. Number fields accept negative signs and decimals any time.
  */
+
 package team2655.scriptcrafter.gui;
 
 import java.awt.BorderLayout;
@@ -485,18 +487,18 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 	    
 	    JComboBox<String> comboBox = new JComboBox<>(commands);
 	    
-	    JFormattedTextField lettersOnly = new JFormattedTextField();
-	    lettersOnly.setDocument(new AlphabetDocument());
+	    JFormattedTextField numbersOnly = new JFormattedTextField();
+	    numbersOnly.setDocument(new NumbersDocument());
 	    
 	    TableColumn command = table.getColumnModel().getColumn(0);
 	    command.setCellEditor(new DefaultCellEditor(comboBox));
 	    
 	    TableColumn arg1 = table.getColumnModel().getColumn(1);
-	    arg1.setCellEditor(new DefaultCellEditor(lettersOnly));
+	    arg1.setCellEditor(new DefaultCellEditor(numbersOnly));
 	    //arg1.setCellRenderer(new ArgumentCellRenderer());
 	    
 	    TableColumn arg2 = table.getColumnModel().getColumn(2);
-	    arg2.setCellEditor(new DefaultCellEditor(lettersOnly));
+	    arg2.setCellEditor(new DefaultCellEditor(numbersOnly));
 	    //arg2.setCellRenderer(new ArgumentCellRenderer());
 		
 	}
@@ -842,7 +844,7 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 	@Override
 	public void windowOpened(WindowEvent arg0) {}
 	
-	public class AlphabetDocument extends PlainDocument {
+	public class NumbersDocument extends PlainDocument {
 
 		private static final long serialVersionUID = 655037934344680384L;
 		
@@ -853,7 +855,10 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 			
 		    try {
 		    	
-		        text = getText(0, getLength()) + txt;
+		        text = getText(0, getLength());
+		        text = text.substring(0, offset) + txt + text.substring(offset, text.length());
+		        
+		        System.out.println(text);
 		        
 		        try{
 		        	
@@ -864,6 +869,11 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 		        }catch(Exception e){
 		        	
 		        	//Not a valid number
+		        	if(txt.equals("-") || txt.equals(".")){ //These character are only not valid if there is no number
+		        		
+		        		super.insertString(offset, txt, a);
+		        		
+		        	}
 		        	
 		        }
 		        

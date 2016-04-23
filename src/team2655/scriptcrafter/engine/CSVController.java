@@ -24,8 +24,8 @@ public class CSVController implements Values{
 	private static File routinesDir = new File(System.getProperty("user.home") + "/Desktop/Autonomous/");
 	private static File userBackupDir = new File(System.getProperty("user.home") + "/Autonomous-BAK/");
 	private static File systemBackupDir = new File(System.getenv("PUBLIC") + "/Autonomous-BAK/");
-	private static File backupFile = new File(System.getProperty("user.home") + "/Desktop/Autonomous/Backup/");
-	private static File deleteBackupsDir = new File(System.getProperty("user.home") + "/Desktop/Autonomous/Deleted/");
+	private static File backupFile = new File(System.getProperty("user.home") + "/Desktop/Backup/");
+	private static File deleteBackupsDir = new File(System.getProperty("user.home") + "/Desktop/Deleted/");
 	
 	private static File[] routineDirs = {routinesDir}; //Routine non-backup locations
 	private static File[] routineDirsBackups = {userBackupDir, systemBackupDir, backupFile}; //Backup locations
