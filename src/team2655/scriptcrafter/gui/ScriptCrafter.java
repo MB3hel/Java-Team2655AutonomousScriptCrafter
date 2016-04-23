@@ -857,9 +857,7 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 		    	
 		        text = getText(0, getLength());
 		        text = text.substring(0, offset) + txt + text.substring(offset, text.length());
-		        
-		        System.out.println(text);
-		        
+		        		        
 		        try{
 		        	
 		        	Double.parseDouble(text);
@@ -868,8 +866,9 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 		        	
 		        }catch(Exception e){
 		        	
+		        	text = getText(0, getLength());
 		        	//Not a valid number
-		        	if(txt.equals("-") || txt.equals(".")){ //These character are only not valid if there is no number
+		        	if((txt.equals("-") && !text.contains("-")) || (txt.equals(".") && !text.contains("."))){ //These character are only not valid if there is no number
 		        		
 		        		super.insertString(offset, txt, a);
 		        		
