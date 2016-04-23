@@ -1,3 +1,6 @@
+/*
+ * Version 1.0.1: Disabled second argument check and multi row select in main table
+ */
 package team2655.scriptcrafter.gui;
 
 import java.awt.BorderLayout;
@@ -389,6 +392,7 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 	private void setupTable(){
 		
 		table.setModel(new EditabeByArgumentTypeModel());
+		table.setSelectionModel(new ForcedListSelectionModel());
 		
 		DefaultTableModel model = (DefaultTableModel)table.getModel();
 		

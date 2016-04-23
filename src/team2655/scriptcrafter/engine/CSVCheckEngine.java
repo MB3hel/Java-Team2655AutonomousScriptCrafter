@@ -45,8 +45,8 @@ public class CSVCheckEngine {
 				
 			if(!argumentCorrect)
 				dataString += "Line " + String.valueOf(row + 1) + ": First Argument Invalid\n"; //Add error message
-			if(!secondArg)
-				dataString += "Line " + String.valueOf(row + 1) + ": Second Argument Invalid\n"; //Add error message
+			/*if(!secondArg)
+				dataString += "Line " + String.valueOf(row + 1) + ": Second Argument Invalid\n"; //Add error message*/
 			
 		}
 		
