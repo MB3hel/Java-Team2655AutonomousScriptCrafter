@@ -1,6 +1,5 @@
 /*
  * Version 1.0.1: Disabled second argument check and multi row select in main table
- * Version 1.0.2: Checking is tolerant of blank command and spelling of 'driver station' was fixed. Save popup on file selector was removed. Rescan for file selector does not discard all changes. If command with none argument types is selected the arguments with type none are cleared
  */
 package team2655.scriptcrafter.gui;
 
@@ -43,8 +42,6 @@ import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
@@ -82,8 +79,6 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 	private JButton btnUp;
 	private JButton btnDown;
 	private JButton btnDelete;
-	
-	private boolean scanning = false;
 	
 	public ScriptCrafter(){
 		
@@ -396,59 +391,8 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 	
 	private void setupTable(){
 		
-		table.setModel(new EditableByArgumentTypeModel());
+		table.setModel(new EditabeByArgumentTypeModel());
 		table.setSelectionModel(new ForcedListSelectionModel());
-		table.getModel().addTableModelListener(new TableModelListener(){
-
-			@Override
-			public void tableChanged(TableModelEvent e) {
-				
-				if(e.getColumn() == 0){
-					
-					try{
-						
-						ArrayList<String> commands = new ArrayList<>(Arrays.asList(CSVController.loadCommands()));
-	        			ArrayList<String> arguments = new ArrayList<>(Arrays.asList(CSVController.loadArguments()));
-	        			String command = ((DefaultTableModel)table.getModel()).getValueAt(e.getFirstRow(),  0).toString();
-	        			ArrayList<String> secArguments = new ArrayList<>(Arrays.asList(CSVController.loadSecondArguments()));
-	        			
-	        			String argType = "";
-	        			String secArgType = "";
-	        			
-			        	try{
-			        				
-			        		argType = arguments.get(commands.indexOf(command));
-			        		secArgType = secArguments.get(commands.indexOf(command));		
-			        		
-			        	}catch(Exception er){
-			        		
-			        		
-			        		
-			        	}
-			        	
-			        	if(argType.equals(ARGUMENT_TYPE_NONE) || argType.trim().equals("")){
-			        		
-			        		((DefaultTableModel)table.getModel()).setValueAt("", e.getFirstRow(), 1);
-			        		
-			        	}
-			        	
-			        	if(secArgType.equals(ARGUMENT_TYPE_NONE) || argType.trim().equals("")){
-			        		
-			        		((DefaultTableModel)table.getModel()).setValueAt("", e.getFirstRow(), 2);
-			        		
-			        	}
-						
-					}catch(Exception er){
-						
-						
-						
-					}
-					
-				}
-				
-			}
-			
-		});
 		
 		DefaultTableModel model = (DefaultTableModel)table.getModel();
 		
@@ -693,7 +637,7 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 				
 			}catch(Exception er){
 				
-				JOptionPane.showMessageDialog(new JDialog(), "Save failed (is the driver station open?).", "Save Error!", JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(new JDialog(), "Save failed (is the river station open?).", "Save Error!", JOptionPane.ERROR_MESSAGE);
 				
 			}
 			
@@ -807,7 +751,7 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 				
 			} catch (Exception er) {
 				
-				int returned = JOptionPane.showConfirmDialog(new JDialog(), "The file was not saved (is the driver station open?). Exit anyways (will discard changes)?", "Save Error!", JOptionPane.ERROR_MESSAGE);
+				int returned = JOptionPane.showConfirmDialog(new JDialog(), "The file was not saved (is the river station open?). Exit anyways (will discard changes)?", "Save Error!", JOptionPane.ERROR_MESSAGE);
 				er.printStackTrace();
 				if(returned == JOptionPane.YES_OPTION){
 					
@@ -914,11 +858,11 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 
 	}
 	
-	public class EditableByArgumentTypeModel extends DefaultTableModel {
+	public class EditabeByArgumentTypeModel extends DefaultTableModel {
 		
 		private static final long serialVersionUID = -3260475730036854273L;
 
-		private EditableByArgumentTypeModel() {
+		private EditabeByArgumentTypeModel() {
 	    	
 	        super();
 	        
@@ -1012,7 +956,7 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 	
 	//Create a list of routine files
 	private void scanFiles(){			
-			scanning = true;
+							
 			String[] fileNames = CSVController.listScripts(); //list file names
 			
 			for(String name : fileNames){
@@ -1025,14 +969,10 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 				
 			}
 			
-			scanning = false;
-			
 		}
 		
 		//scan files by refresh button (need to clear combobox and table)
 		public void rescanFiles(){
-			
-			scanning = true;
 			
 			String currentlySelected = (String) fileSelector.getSelectedItem(); //Get currently selected name
 			
@@ -1076,14 +1016,10 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 				
 			}
 			
-			scanning = false;
-			
 		}
 		
 		//scan files after a delete
 		public void deleteRescanFiles(){
-			
-			scanning = true;
 				
 				String currentlySelected = (String) fileSelector.getSelectedItem(); //Get currently selected name
 				
@@ -1140,18 +1076,12 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 					
 				}
 				
-				scanning = false;
-				
 			}
 		
 		
 		public void rescanFiles(String toSelect){
 			
-			scanning = true;
-			
 			String currentlySelected = toSelect; //Which file to select
-			
-			System.out.println("'" + toSelect + "'");
 						
 			String[] fileNames = CSVController.listScripts(); //List all file names
 			
@@ -1197,8 +1127,6 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 						
 			}
 			
-			scanning = false;
-			
 		}
 		
 		@Override
@@ -1206,7 +1134,7 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 			
 			Object src = e.getSource();
 			
-	       if(src == fileSelector && !scanning){ //If file selector
+	       if(src == fileSelector){ //If file selector
 	    	   
 	    	   if (e.getStateChange() == ItemEvent.SELECTED) { //if something selected
 	        	   
@@ -1266,8 +1194,8 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 			
 			rescanFiles(fileSelector.getSelectedItem().toString());
 			
-			//int rtn = JOptionPane.showConfirmDialog(new JDialog(), "Save before continue?", "Save?", JOptionPane.YES_NO_OPTION);
-			int rtn = JOptionPane.YES_OPTION;
+			int rtn = JOptionPane.showConfirmDialog(new JDialog(), "Save before continue?", "Save?", JOptionPane.YES_NO_OPTION);
+			
 			if(rtn == JOptionPane.YES_OPTION){
 				
 				autoRowThread.suspend();
@@ -1283,13 +1211,20 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 						
 					}
 					
-					CSVController.saveFileQuiet(fileSelector.getSelectedItem().toString(), (DefaultTableModel)table.getModel());
+					CSVController.saveFile(fileSelector.getSelectedItem().toString(), (DefaultTableModel)table.getModel());
 					
 				} catch (Exception er) {
 					
-					JOptionPane.showMessageDialog(new JDialog(), "The file was not saved (is the driver station open?).", "Save Error!", JOptionPane.ERROR_MESSAGE);
+					int returned = JOptionPane.showConfirmDialog(new JDialog(), "The file was not saved (is the river station open?). Continue anyways(will discard changes)?", "Save Error!", JOptionPane.ERROR_MESSAGE);
 					er.printStackTrace();
-					
+					if(returned == JOptionPane.YES_OPTION){
+						
+						
+						
+					}else{
+						
+						autoRowThread.resume();				
+					}
 					
 				}
 				
@@ -1298,7 +1233,7 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 			}else if(rtn == JOptionPane.NO_OPTION){
 				
 				
-			
+				
 			}
 			
 		}

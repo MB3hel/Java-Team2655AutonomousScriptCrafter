@@ -17,9 +17,7 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
-import team2655.scriptcrafter.values.Values;
-
-public class CSVController implements Values{
+public class CSVController {
 	
 	private static File routinesDir = new File(System.getProperty("user.home") + "/Desktop/Autonomous/");
 	private static File userBackupDir = new File(System.getProperty("user.home") + "/Autonomous-BAK/");
@@ -87,7 +85,7 @@ public class CSVController implements Values{
 		
 	}
 	
-	public static void saveFileQuiet(String name, DefaultTableModel model) throws IOException{
+	public static void saveFile(String name, DefaultTableModel model) throws IOException{
 		
 		for(File dir : routineDirs){
 			
@@ -135,11 +133,6 @@ public class CSVController implements Values{
 			
 		}
 		
-	}
-	
-	public static void saveFile(String name, DefaultTableModel model) throws IOException{
-		
-		saveFileQuiet(name, model);
 		checkScript(name, loadCommands(), loadArguments(), loadSecondArguments());
 		
 	}

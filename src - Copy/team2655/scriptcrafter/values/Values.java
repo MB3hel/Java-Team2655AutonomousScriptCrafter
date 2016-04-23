@@ -4,7 +4,7 @@ public interface Values {
 	
 	public final int VERSION_MAJOR = 1;
 	public final int VERSION_MINOR = 0;
-	public final int VERSION_BUILD = 2;
+	public final int VERSION_BUILD = 1;
 	
 	public final String ARGUMENT_TYPE_NUMERIC = "Numeric";
 	public final String ARGUMENT_TYPE_NONE = "None";

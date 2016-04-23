@@ -25,7 +25,6 @@ public class CSVCheckEngine {
 				
 	}
 	
-	@SuppressWarnings("unused")
 	public String checkFile(File file) throws IOException{
 		
 		String dataString = "";
@@ -91,7 +90,7 @@ public class CSVCheckEngine {
 		
 		for(int i = 0; i < commands.length; i++){
 			
-			if(command.equals(commands[i]) || (command.trim().equals(""))){
+			if(command.equals(commands[i])){
 				
 				isCommand = true;
 				commandIndex = i;
@@ -111,7 +110,7 @@ public class CSVCheckEngine {
 		String shouldBe = argumentTypes[commandIndex];
 		
 		
-		if((shouldBe.equals(ARGUMENT_TYPE_NONE) && (argument.equals("") || argument.equals(" "))) || commands[commandIndex].trim().equals("")){
+		if(shouldBe.equals(ARGUMENT_TYPE_NONE) && (argument.equals("") || argument.equals(" "))){
 			
 			isArgument = true;
 		
@@ -143,7 +142,7 @@ public class CSVCheckEngine {
 		
 		String shouldBe = secArgTypes[commandIndex];
 		
-		if((shouldBe.equals(ARGUMENT_TYPE_NONE) && (argument.equals("") || argument.equals(" "))) || commands[commandIndex].trim().equals("")){
+		if(shouldBe.equals(ARGUMENT_TYPE_NONE) && (argument.equals("") || argument.equals(" "))){
 			
 			isArgument = true;
 		
