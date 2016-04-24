@@ -228,10 +228,10 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 		getContentPane().add(bottomPanel, BorderLayout.SOUTH);
 		bottomPanel.setLayout(new GridLayout(0, 5, 0, 0));
 		
-		btnSave = new JButton("Save");
+		btnSave = new JButton("Save Changes");
 		bottomPanel.add(btnSave);
 		
-		btnDiscard = new JButton("Discard");
+		btnDiscard = new JButton("Discard Changes");
 		bottomPanel.add(btnDiscard);
 		
 		btnUp = new JButton("Up");
@@ -289,6 +289,7 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 		
 		try {
 			
+			setupTable();
 			CSVController.loadScript(fileSelector.getSelectedItem().toString(), (DefaultTableModel)table.getModel());
 			
 		} catch (Exception e) {
@@ -625,6 +626,7 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 													
 						rescanFiles(returned.toString());
 						
+						setupTable();
 						CSVController.loadScript(returned.toString(), (DefaultTableModel)table.getModel());
 						
 					}else{
@@ -718,6 +720,7 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
      			    
      			   	}
      			   	
+     			   	setupTable();
      			   	CSVController.loadScript(fileSelector.getSelectedItem().toString(), model);
 					
 				} catch (Exception er) {}
@@ -1142,6 +1145,7 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 	 			   
 	 			   try{
 	 				   
+	 				   setupTable();
 	 				   CSVController.loadScript(fileSelector.getSelectedItem().toString(), (DefaultTableModel)table.getModel());
 	 				   
 	 			   }catch(Exception e){
@@ -1239,7 +1243,8 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 	        			   
 	        			   //load the data
 	        			try {
-
+	        				
+	        				setupTable();
 							CSVController.loadScript(fileSelector.getSelectedItem().toString(), (DefaultTableModel) table.getModel());
 							((DefaultTableModel)table.getModel()).addRow(new String[]{"", "", ""});
 							

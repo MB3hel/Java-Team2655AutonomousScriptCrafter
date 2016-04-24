@@ -216,6 +216,14 @@ public class CSVController implements Values{
 			
 		}
 		
+		try{Thread.sleep(100);}catch(Exception e){}
+		
+		for(int r = 0; r < model.getRowCount();r++){
+			
+			model.removeRow(r);
+			
+		}
+		
 		File script = new File(routinesDir.getAbsolutePath() + "/" + name + ".csv");
 		
 		BufferedReader in = new BufferedReader(new FileReader(script));
