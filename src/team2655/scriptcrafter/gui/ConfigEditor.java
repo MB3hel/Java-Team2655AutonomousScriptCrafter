@@ -5,22 +5,21 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 
+import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
-import javax.swing.CellEditor;
 import javax.swing.DefaultCellEditor;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
-import javax.swing.JOptionPane;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -37,37 +36,41 @@ import javax.swing.text.PlainDocument;
 import com.sun.glass.events.KeyEvent;
 
 import team2655.scriptcrafter.engine.CSVController;
+import team2655.scriptcrafter.engine.ConfigEditorEngine;
 import team2655.scriptcrafter.listener.CommandsListener;
 import team2655.scriptcrafter.values.Values;
 
-public class ConfigEditor extends JDialog implements WindowListener, Values, ActionListener {
+public class ConfigEditor extends JFrame implements Values {
 
-	private static final long serialVersionUID = 889547632847065343L;
-	private JScrollPane scrollPane;
-	private JTable table;
-	private CommandsListener listener;
-	private JPanel bottomPanel;
-	private JButton btnSave;
-	private JButton btnDiscard;
-	private JButton btnUp;
-	private JButton btnDown;
-	private JButton btnDelete;
-		
-	Thread autoRowThread;
+	public static final long serialVersionUID = 889547632847065343L;
+	public boolean removing = false;
 	
+	public JScrollPane scrollPane;
+	
+	public JTable table;
+	
+	public JPanel bottomPanel;
+	
+	public JButton btnSave;
+	public JButton btnDiscard;
+	public JButton btnUp;
+	public JButton btnDown;
+	public JButton btnDelete;
+	
+	public CommandsListener listener;
+	public ConfigEditorEngine engine;
+			
 	public ConfigEditor(CommandsListener listener){
 		
 		this.listener = listener;
+		
+		engine = new ConfigEditorEngine(this);
 		
 		table = new JTable();
 		table.setPreferredScrollableViewportSize(new Dimension(500, 300));
 		
 		scrollPane = new JScrollPane(table);
 		getContentPane().add(scrollPane, BorderLayout.CENTER);
-		
-		/*number = new JFormattedTextField(NumberFormat.getNumberInstance());
-		number.setColumns(1);
-		numberPanel.add(number);*/
 		
 		setupTable();
 		setupValues();
@@ -92,70 +95,43 @@ public class ConfigEditor extends JDialog implements WindowListener, Values, Act
 		btnDelete = new JButton("Delete");
 		bottomPanel.add(btnDelete);
 		
-		autoRowThread = new Thread(){
-			
-			@Override
-			public void run(){
-				
-				while(true){
-					
-					try{
-						
-						Integer[] rows = blankRows();
-						int blank = rows.length;
-						
-						if(blank > 1){
-							
-							for(Integer i : rows){
-								
-								((DefaultTableModel)table.getModel()).removeRow(i);
-								
-							}
-							
-						}else if(blank < 1){
-							
-							((DefaultTableModel)table.getModel()).addRow(new String[]{"", "", "", "", ""});
-							
-						}
-						
-					}catch(Exception e){
-						
-						
-						
-					}
-					
-				}
-				
-			}
-			
-		};
-		
 		setupButtons();
 		
-		autoRowThread.start();
+		try{
+			
+			this.setIconImage(ImageIO.read(new File("./img/icon.png")));
+			
+		}catch(Exception e){
+			
+			
+			
+		}
 		
+		table.getModel().addTableModelListener(engine);
+		((DefaultTableModel)table.getModel()).addRow(new String[]{"", "", "", "", ""});
+				
 		this.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-		this.addWindowListener(this);
+		this.addWindowListener(engine);
 		this.setTitle("Configure Commands");
 		this.pack();
 		this.setLocationRelativeTo(null);
 		this.setVisible(true);
-		this.setAlwaysOnTop(true);
+		this.setAlwaysOnTop(false);
 		this.requestFocus();
 		
 	}
 	
-	private void setupButtons(){
+	public void setupButtons(){
 		
-		btnSave.addActionListener(this);
-		btnDiscard.addActionListener(this);
-		btnUp.addActionListener(this);
-		btnDown.addActionListener(this);
-		btnDelete.addActionListener(this);
+		btnSave.addActionListener(engine);
+		btnDiscard.addActionListener(engine);
+		btnUp.addActionListener(engine);
+		btnDown.addActionListener(engine);
+		btnDelete.addActionListener(engine);
 		
 	}
 	
-	private void setupTable(){
+	public void setupTable(){
 		
 		table.setModel(new EditabeByArgumentTypeModel());
 		
@@ -168,7 +144,7 @@ public class ConfigEditor extends JDialog implements WindowListener, Values, Act
 		model.addColumn("Argument 2 Name");
 		
 		table.getTableHeader().setReorderingAllowed(false);
-	    table.getTableHeader().setResizingAllowed(false);
+	    table.getTableHeader().setResizingAllowed(true);
 	    table.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
 	    table.setSelectionModel(new ForcedListSelectionModel());
 	    
@@ -235,7 +211,7 @@ public class ConfigEditor extends JDialog implements WindowListener, Values, Act
 	}
 	
 	@SuppressWarnings("serial")
-	private void setupKeyBindings(){
+	public void setupKeyBindings(){
 		
 		table.getInputMap().clear();
 		
@@ -315,12 +291,10 @@ public class ConfigEditor extends JDialog implements WindowListener, Values, Act
 	    
 	}
 	
-	private void setupValues(){
+	public void setupValues(){
 		
 		try{
-			
-			//number.setText(String.valueOf(CSVController.loadNumberOfArguments()));
-			
+						
 			DefaultTableModel model = (DefaultTableModel)table.getModel();
 			
 			String[] commands = CSVController.loadCommands();
@@ -336,9 +310,7 @@ public class ConfigEditor extends JDialog implements WindowListener, Values, Act
 				model.addRow(rowData);
 				
 			}
-			
-			model.addRow(new String[]{"", "", "", "", ""});
-						
+									
 		}catch(Exception e){
 			
 			e.printStackTrace();
@@ -347,7 +319,7 @@ public class ConfigEditor extends JDialog implements WindowListener, Values, Act
 		
 	}
 	
-	private String[] getCommands(){
+	public String[] getCommands(){
 		
 		DefaultTableModel model = (DefaultTableModel)table.getModel();
 		
@@ -365,7 +337,7 @@ public class ConfigEditor extends JDialog implements WindowListener, Values, Act
 		
 	}
 	
-	private String[] getArguments(){
+	public String[] getArguments(){
 		
 		DefaultTableModel model = (DefaultTableModel)table.getModel();
 		
@@ -383,7 +355,7 @@ public class ConfigEditor extends JDialog implements WindowListener, Values, Act
 		
 	}
 	
-	private String[] getArgumentNames(){
+	public String[] getArgumentNames(){
 		
 		DefaultTableModel model = (DefaultTableModel)table.getModel();
 		
@@ -401,7 +373,7 @@ public class ConfigEditor extends JDialog implements WindowListener, Values, Act
 		
 	}
 	
-	private String[] getSecondArguments(){
+	public String[] getSecondArguments(){
 		
 		DefaultTableModel model = (DefaultTableModel)table.getModel();
 		
@@ -419,7 +391,7 @@ public class ConfigEditor extends JDialog implements WindowListener, Values, Act
 		
 	}
 	
-	private String[] getSecondArgumentNames(){
+	public String[] getSecondArgumentNames(){
 		
 		DefaultTableModel model = (DefaultTableModel)table.getModel();
 		
@@ -437,7 +409,7 @@ public class ConfigEditor extends JDialog implements WindowListener, Values, Act
 		
 	}
 	
-	private Integer[] blankRows(){
+	public Integer[] blankRows(){
 		
 		ArrayList<Integer> rows = new ArrayList<>();
 		
@@ -447,23 +419,23 @@ public class ConfigEditor extends JDialog implements WindowListener, Values, Act
 			
 			if(model.getValueAt(i, 0).toString().trim().equals("")){
 				
-				if(model.getValueAt(i, 1).toString().trim().equals("")){
+				/*if(model.getValueAt(i, 1).toString().trim().equals("")){
 					
 					if(model.getValueAt(i, 2).toString().trim().equals("")){
 						
 						if(model.getValueAt(i, 3).toString().trim().equals("")){
 							
-							if(model.getValueAt(i, 4).toString().trim().equals("")){
+							if(model.getValueAt(i, 4).toString().trim().equals("")){*/ //blank if no command
 								
 								rows.add(i);
 								
-							}
+							/*}
 							
 						}
 						
 					}
 					
-				}
+				}*/
 				
 			}
 			
@@ -473,119 +445,76 @@ public class ConfigEditor extends JDialog implements WindowListener, Values, Act
 		
 	}
 	
-	private void removeBlankRows(){
-				
+	public void removeBlankRows(){
+		
+		removing = true;
+		
 		DefaultTableModel model = (DefaultTableModel) table.getModel();
 		
 		for(int i = 0; i < model.getRowCount(); i++){
 			
 			if(model.getValueAt(i, 0).toString().trim().equals("")){
 				
-				if(model.getValueAt(i, 1).toString().trim().equals("")){
+				/*if(model.getValueAt(i, 1).toString().trim().equals("")){
 					
 					if(model.getValueAt(i, 2).toString().trim().equals("")){
 						
 						if(model.getValueAt(i, 3).toString().trim().equals("")){
 							
-							if(model.getValueAt(i, 4).toString().trim().equals("")){
+							if(model.getValueAt(i, 4).toString().trim().equals("")){*/ //blank if no command
 								
 								model.removeRow(i);
 								
-							}
+							/*}
 							
 						}
 						
 					}
 					
-				}
+				}*/
 				
 			}
 			
 		}
+		
+		removing = false;
 				
 	}
-
-	@Override
-	public void windowActivated(WindowEvent arg0) {}
-
-	@Override
-	public void windowClosed(WindowEvent arg0) {}
-
-	@SuppressWarnings("deprecation")
-	@Override
-	public void windowClosing(WindowEvent arg0) {
+	
+	public void blankRowCorrection(){
 		
-		JDialog dialog = new JDialog();
-		dialog.setLocationRelativeTo(null);
-		dialog.setAlwaysOnTop(true);
-		dialog.setVisible(true);
+		Integer[] blank = blankRows();
 		
-		int rtn = JOptionPane.showConfirmDialog(dialog, "Save before exit?", "Save?", JOptionPane.YES_NO_CANCEL_OPTION);
-		dialog.dispose();
-		if(rtn == JOptionPane.YES_OPTION){
+		while(blank.length > 1){
 			
-			autoRowThread.suspend();
-			removeBlankRows();
-			
-			try {
+			int row = blank[0];
+						
+			if(row != (table.getModel().getRowCount() - 1)){
 				
-				CellEditor editor = table.getCellEditor();
-				
-				if(editor != null){
-					
-					editor.stopCellEditing();
-					
-				}
-				
-				CSVController.saveConfigFile(getCommands(), getArguments(), getArgumentNames(), getSecondArguments(), getSecondArgumentNames());
-				
-				listener.commandsChanged();
-				this.dispose();
-				
-			} catch (Exception er) {
-				
-				int returned = JOptionPane.showConfirmDialog(new JDialog(), "The file was not saved (is the river station open?). Exit anyways (will discard changes)?", "Save Error!", JOptionPane.ERROR_MESSAGE);
-				er.printStackTrace();
-				if(returned == JOptionPane.YES_OPTION){
-					
-					this.dispose();
-					
-				}else{
-					
-					autoRowThread.resume();				
-				}
+				((DefaultTableModel)table.getModel()).removeRow(row);
 				
 			}
 			
-			autoRowThread.resume();	
+			blank = blankRows();
 			
-		}else if(rtn == JOptionPane.NO_OPTION){
+		}
+		
+		blank = blankRows();
+		ArrayList<Integer> list = new ArrayList<>(Arrays.asList(blank));
+		
+		if(!list.contains(table.getRowCount() - 1)){
 			
-			this.dispose();
+			((DefaultTableModel)table.getModel()).addRow(new String[]{"", "", "", "", ""});
 			
 		}
 		
 	}
-
-	@Override
-	public void windowDeactivated(WindowEvent arg0) {}
-
-	@Override
-	public void windowDeiconified(WindowEvent arg0) {}
-
-	@Override
-	public void windowIconified(WindowEvent arg0) {}
-
-	@Override
-	public void windowOpened(WindowEvent arg0) {}
-	
-	
 	
 	public class AlphabetDocument extends PlainDocument {
 
-		private static final long serialVersionUID = 655037934344680384L;
+		public static final long serialVersionUID = 655037934344680384L;
 		
-		private String text = "";
+		public String text = "";
 
 		@Override
 		public void insertString(int offset, String txt, AttributeSet a) {
@@ -609,7 +538,7 @@ public class ConfigEditor extends JDialog implements WindowListener, Values, Act
 	//Allow only one row to be selected at a time
 	public class ForcedListSelectionModel extends DefaultListSelectionModel {
 
-		private static final long serialVersionUID = -7073835059132006928L;
+		public static final long serialVersionUID = -7073835059132006928L;
 
 		public ForcedListSelectionModel () {
 		    	
@@ -635,9 +564,9 @@ public class ConfigEditor extends JDialog implements WindowListener, Values, Act
 	
 	public class EditabeByArgumentTypeModel extends DefaultTableModel {
 		
-		private static final long serialVersionUID = -3260475730036854273L;
+		public static final long serialVersionUID = -3260475730036854273L;
 
-		private EditabeByArgumentTypeModel() {
+		public EditabeByArgumentTypeModel() {
 	    	
 	        super();
 	        
@@ -687,85 +616,8 @@ public class ConfigEditor extends JDialog implements WindowListener, Values, Act
 	    }
 	    
 	}
-
-	@SuppressWarnings("deprecation")
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		
-		Object src = e.getSource();
-		
-		if(src == btnSave){
-			
-			autoRowThread.suspend();
-			removeBlankRows();
-			
-			try {
-				
-				CellEditor editor = table.getCellEditor();
-				
-				if(editor != null){
-					
-					editor.stopCellEditing();
-					
-				}
-				
-				CSVController.saveConfigFile(getCommands(), getArguments(), getArgumentNames(), getSecondArguments(), getSecondArgumentNames());
-				
-				listener.commandsChanged();
-				
-			} catch (Exception er) {
-				
-				JOptionPane.showMessageDialog(new JDialog(), "The file was not saved (is the river station open?).", "Save Error!", JOptionPane.ERROR_MESSAGE);
-				er.printStackTrace();
-				
-			}
-			
-			autoRowThread.resume();
-			
-		}else if(src == btnDiscard){
-			
-			JDialog dialog = new JDialog();
-			dialog.setLocationRelativeTo(null);
-			dialog.setAlwaysOnTop(true);
-			dialog.setVisible(true);
-			
-			int rtn = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to discard ALL changes since the last save?", "Discard?", JOptionPane.YES_NO_CANCEL_OPTION);
-			dialog.dispose();
-			if(rtn == JOptionPane.YES_OPTION){
-				
-				try {
-					
-					DefaultTableModel model = (DefaultTableModel) table.getModel();
-     			   
-     			   	for (int i = model.getRowCount() - 1; i >= 0; i--) {
-     			   	
-     			   		model.removeRow(i);
-     			    
-     			   	}
-     			   	
-     			   	setupValues();
-     			   	
-				} catch (Exception er) {}
-				
-			}
-			
-		}else if(src == btnUp){
-			
-			moveRowUp();
-			
-		}else if(src == btnDown){
-			
-			moveRowDown();
-			
-		}else if(src == btnDelete){
-			
-			deleteRow();
-			
-		}
-		
-	}
 	
-	private void moveRowUp(){
+	public void moveRowUp(){
 		
 		int row = table.getSelectedRow();
 		
@@ -779,7 +631,7 @@ public class ConfigEditor extends JDialog implements WindowListener, Values, Act
 		
 	}
 	
-	private void moveRowDown(){
+	public void moveRowDown(){
 		
 		int row = table.getSelectedRow();
 		
@@ -793,7 +645,7 @@ public class ConfigEditor extends JDialog implements WindowListener, Values, Act
 		
 	}
 	
-	private void deleteRow(){
+	public void deleteRow(){
 		
 		int row = table.getSelectedRow();
 		

@@ -25,8 +25,8 @@ public class CSVController implements Values{
 	private static File routinesDir = new File(System.getProperty("user.home") + "/Desktop/Autonomous/");
 	private static File userBackupDir = new File(System.getProperty("user.home") + "/Autonomous-BAK/");
 	private static File systemBackupDir = new File(System.getenv("PUBLIC") + "/Autonomous-BAK/");
-	private static File backupFile = new File(System.getProperty("user.home") + "/Desktop/Backup/");
-	private static File deleteBackupsDir = new File(System.getProperty("user.home") + "/Desktop/Deleted/");
+	private static File backupFile = new File(System.getProperty("user.home") + "/Desktop/Autonomous-Backup/");
+	private static File deleteBackupsDir = new File(System.getProperty("user.home") + "/Desktop/Autonomous-Deleted/");
 	
 	private static File[] routineDirs = {routinesDir}; //Routine non-backup locations
 	private static File[] routineDirsBackups = {userBackupDir, systemBackupDir, backupFile}; //Backup locations
@@ -103,6 +103,12 @@ public class CSVController implements Values{
 	public static void saveFileQuiet(String name, DefaultTableModel model) throws IOException{
 		
 		for(File dir : routineDirs){
+			
+			if(!dir.exists()){
+				
+				dir.mkdirs();
+				
+			}
 			
 			File script = new File(dir.getAbsolutePath() + "/" + name + ".csv");
 			
@@ -290,10 +296,16 @@ public class CSVController implements Values{
 		}
 		
 	}
-	
+
 	public static void saveConfigFile(String[] cmds, String[] args, String[] argNames, String[] secArgs, String[] secArgNames) throws IOException{
 		
 		for(File dir : routineDirs){
+			
+			if(!dir.exists()){
+				
+				dir.mkdirs();
+				
+			}
 			
 			File config = new File(dir.getAbsolutePath() + "/scriptcrafter.config");
 			
@@ -356,6 +368,12 @@ public class CSVController implements Values{
 	public static void createConfigFile() throws IOException{
 		
 		for(File dir : routineDirs){
+			
+			if(!dir.exists()){
+				
+				dir.mkdirs();
+				
+			}
 			
 			File config = new File(dir.getAbsolutePath() + "/scriptcrafter.config");
 			

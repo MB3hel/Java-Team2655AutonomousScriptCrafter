@@ -251,7 +251,7 @@ public class ScriptCrafterEngine implements ActionListener, WindowListener, Valu
 		Object src = e.getSource();
 		
 		if(src == crafter.fileSelector && !crafter.scanning){
-    	   
+			    	   
 			if (e.getStateChange() == ItemEvent.SELECTED) {
         	   
 				String newItem = (String) crafter.fileSelector.getSelectedItem();
@@ -268,9 +268,7 @@ public class ScriptCrafterEngine implements ActionListener, WindowListener, Valu
 							crafter.lastFileSelected = crafter.fileSelector.getSelectedItem().toString();
 						
 						} catch (Exception er) {}
-        			   	
-        				
-        				
+        			   	        				
 					}
     			   
 				}else{
@@ -297,7 +295,15 @@ public class ScriptCrafterEngine implements ActionListener, WindowListener, Valu
 	public void popupMenuCanceled(PopupMenuEvent arg0) {}
 
 	@Override
-	public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {}
+	public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+		
+		if(crafter.fileSelector.getSelectedItem().toString().equals(crafter.lastFileSelected)){
+			
+			crafter.blankRowCorrection();
+			
+		} //Otherwise the load will run and take care of it from the itemEvent																									
+		
+	}
 
 	@Override
 	public void popupMenuWillBecomeVisible(PopupMenuEvent e) {

@@ -4,7 +4,9 @@
  * Version 1.0.3: Moved deleted and backup locations from autonomous to desktop. Number fields accept negative signs and decimals any time.
  * Version 1.0.4: When a new file is created it is loaded(item event is handeled by createrescanFiles function)
  * Version 2.0.0: Main classes have a gui and listener split, autoRow is not handeled by a thread but by a table model listener config editor changes, can resize rows, 
+ * Version 2.0.1: Crafter opens before loading and checking script so script can be seen when check error dialog pops up
  */
+
 
 package team2655.scriptcrafter.gui;
 
@@ -253,16 +255,6 @@ public class ScriptCrafter extends JFrame implements Values {
 		
 		fileSelector.addItemListener(engine);
 		
-		try {
-			
-			CSVController.loadScript(fileSelector.getSelectedItem().toString(), (DefaultTableModel)table.getModel(), this);
-			
-		} catch (Exception e) {
-			
-			e.printStackTrace();
-			
-		}
-				
 		try{
 			
 			this.setIconImage(ImageIO.read(new File("./img/icon.png")));
@@ -273,15 +265,25 @@ public class ScriptCrafter extends JFrame implements Values {
 			
 		}
 		
-		table.getModel().addTableModelListener(engine);
-		((DefaultTableModel)table.getModel()).addRow(new String[]{"", "", ""});
-		
 		this.setTitle("Script Crafter Version: " + VERSION_MAJOR + "." + VERSION_MINOR + "." + VERSION_BUILD + RELEASE_TYPE);
 		this.addWindowListener(engine);
 		this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		this.pack();
 		this.setLocationRelativeTo(null);
 		this.setVisible(true);
+		
+		try {
+			
+			CSVController.loadScript(fileSelector.getSelectedItem().toString(), (DefaultTableModel)table.getModel(), this);
+			
+		} catch (Exception e) {
+			
+			e.printStackTrace();
+			
+		}
+				
+		table.getModel().addTableModelListener(engine);
+		((DefaultTableModel)table.getModel()).addRow(new String[]{"", "", ""});
 		
 		try{
 			
@@ -380,7 +382,7 @@ public class ScriptCrafter extends JFrame implements Values {
 		model.addColumn("Argument 2");
 		
 		table.getTableHeader().setReorderingAllowed(false);
-	    table.getTableHeader().setResizingAllowed(false);
+	    table.getTableHeader().setResizingAllowed(true);
 	    table.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
 	    		
 	}
