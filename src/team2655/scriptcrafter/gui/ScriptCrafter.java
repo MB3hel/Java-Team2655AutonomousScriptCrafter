@@ -3,6 +3,7 @@
  * Version 1.0.2: Checking is tolerant of blank command and spelling of 'driver station' was fixed. Save popup on file selector was removed. Rescan for file selector does not discard all changes. If command with none argument types is selected the arguments with type none are cleared
  * Version 1.0.3: Moved deleted and backup locations from autonomous to desktop. Number fields accept negative signs and decimals any time.
  * Version 1.0.4: When a new file is created it is loaded(item event is handeled by createrescanFiles function)
+ * Version 2.0.0: Main classes have a gui and listener split, autoRow is not handeled by a thread but by a table model listener config editor changes, can resize rows, 
  */
 
 package team2655.scriptcrafter.gui;
@@ -13,12 +14,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,10 +40,6 @@ import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
@@ -58,35 +50,42 @@ import javax.swing.text.PlainDocument;
 import com.sun.glass.events.KeyEvent;
 
 import team2655.scriptcrafter.engine.CSVController;
-import team2655.scriptcrafter.listener.CommandsListener;
+import team2655.scriptcrafter.engine.ScriptCrafterEngine;
 import team2655.scriptcrafter.values.Values;
 
-public class ScriptCrafter extends JFrame implements ActionListener, WindowListener, Values, CommandsListener, ItemListener, PopupMenuListener {
+public class ScriptCrafter extends JFrame implements Values {
 	
-	private static final long serialVersionUID = 531670650738217800L;
-	private JScrollPane tableScrollPane;
-	private JTable table;
-	private JPanel topPanel;
-	private JButton btnEditCommands;
-	private String[] commands = new String[0];
-	private String lastFileSelected = "";  //Stores the name of the previously selected file if the refresh button is pressed
-	private final static String fileNameRegex = "^[a-zA-Z0-9_-]+$";
+	public static final long serialVersionUID = 531670650738217800L;
 	
-	Thread autoRowThread;
-	private JPanel filePanel;
-	private JPanel fileButtonsPanel;
-	private JButton btnFileNew;
-	private JComboBox<String> fileSelector;
-	private JButton btnFileRename;
-	private JButton btnFileDelete;
-	private JPanel bottomPanel;
-	private JButton btnSave;
-	private JButton btnDiscard;
-	private JButton btnUp;
-	private JButton btnDown;
-	private JButton btnDelete;
+	public String lastFileSelected = "";
 	
-	private boolean scanning = false;
+	public boolean scanning = false;
+	public boolean removing = false;
+	
+	public String[] commands = new String[0];
+	
+	public JScrollPane tableScrollPane;
+	
+	public JTable table;
+	
+	public JComboBox<String> fileSelector;
+	
+	public JPanel topPanel;	
+	public JPanel filePanel;
+	public JPanel fileButtonsPanel;
+	public JPanel bottomPanel;
+	
+	public JButton btnFileNew;
+	public JButton btnEditCommands;
+	public JButton btnFileRename;
+	public JButton btnFileDelete;
+	public JButton btnSave;
+	public JButton btnDiscard;
+	public JButton btnUp;
+	public JButton btnDown;
+	public JButton btnDelete;
+	
+	public ScriptCrafterEngine engine;
 	
 	public ScriptCrafter(){
 		
@@ -99,6 +98,8 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 			e.printStackTrace();
 			
 		}
+		
+		engine = new ScriptCrafterEngine(this);
 		
 		topPanel = new JPanel();
 		getContentPane().add(topPanel, BorderLayout.NORTH);
@@ -125,14 +126,15 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 		fileButtonsPanel.add(btnFileDelete);
 		
 		fileSelector = new JComboBox<>();
-		fileSelector.addPopupMenuListener(this);
+		fileSelector.addPopupMenuListener(engine);
 		filePanel.add(fileSelector, BorderLayout.CENTER);
 		
 		ToolTipManager.sharedInstance().setDismissDelay(999999999); //Hack to "cancel" auto dismiss of tool tips (largest value for int)
+		ToolTipManager.sharedInstance().setInitialDelay(10);
 		
 		table = new JTable() {
 			
-			private static final long serialVersionUID = 1480182826960427740L;
+			public static final long serialVersionUID = 1480182826960427740L;
 
 			public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
 		    	
@@ -165,7 +167,7 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 			        		String name = names.get(commands.indexOf(command));
 			        		String arg = arguments.get(commands.indexOf(command));
 			        		
-			        		String text = "<html>" + "Argument 1: " + arg + "<br />"  + name + "</html>";
+			        		String text = "<html>" + command + ":<br />Argument 1: " + arg + "<br />"  + name + "</html>";
 			        		
 			        		JComponent jc = (JComponent) c;
 			        		jc.setToolTipText(text);
@@ -243,63 +245,24 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 		btnDelete = new JButton("Delete");
 		bottomPanel.add(btnDelete);
 		
-		autoRowThread = new Thread(){
-			
-			@Override
-			public void run(){
-				
-				while(true){
-					
-					try{
-						
-						Integer[] rows = blankRows();
-						int blank = rows.length;
-						
-						if(blank > 1){
-							
-							for(Integer i : rows){
-								
-								((DefaultTableModel)table.getModel()).removeRow(i);
-								
-							}
-							
-						}else if(blank < 1){
-							
-							((DefaultTableModel)table.getModel()).addRow(new String[]{"", "", ""});
-							
-						}
-						
-					}catch(Exception e){
-						
-						
-						
-					}
-					
-				}
-				
-			}
-			
-		};
-		
 		setupButtons();
 		setupTable();
-		scanFiles();
+		setupKeyBindings();
+	    setupColumnTypes();
+		scanFiles(null);
 		
-		fileSelector.addItemListener(this);
+		fileSelector.addItemListener(engine);
 		
 		try {
 			
-			setupTable();
-			CSVController.loadScript(fileSelector.getSelectedItem().toString(), (DefaultTableModel)table.getModel());
+			CSVController.loadScript(fileSelector.getSelectedItem().toString(), (DefaultTableModel)table.getModel(), this);
 			
 		} catch (Exception e) {
 			
 			e.printStackTrace();
 			
 		}
-		
-		autoRowThread.start();
-		
+				
 		try{
 			
 			this.setIconImage(ImageIO.read(new File("./img/icon.png")));
@@ -310,8 +273,11 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 			
 		}
 		
-		this.setTitle("Script Crafter Version: " + VERSION_MAJOR + "." + VERSION_MINOR + "." + VERSION_BUILD);
-		this.addWindowListener(this);
+		table.getModel().addTableModelListener(engine);
+		((DefaultTableModel)table.getModel()).addRow(new String[]{"", "", ""});
+		
+		this.setTitle("Script Crafter Version: " + VERSION_MAJOR + "." + VERSION_MINOR + "." + VERSION_BUILD + RELEASE_TYPE);
+		this.addWindowListener(engine);
 		this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		this.pack();
 		this.setLocationRelativeTo(null);
@@ -330,7 +296,7 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 		
 	}
 	
-	private Integer[] blankRows(){
+	public Integer[] blankRows(){
 		
 		ArrayList<Integer> rows = new ArrayList<>();
 		
@@ -358,7 +324,9 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 		
 	}
 	
-	private void removeBlankRows(){
+	public void removeBlankRows(){
+		
+		removing = true;
 				
 		DefaultTableModel model = (DefaultTableModel) table.getModel();
 		
@@ -379,80 +347,31 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 			}
 			
 		}
+		
+		removing = false;
 				
 	}
 	
-	private void setupButtons(){
+	public void setupButtons(){
 		
-		btnEditCommands.addActionListener(this);
+		btnEditCommands.addActionListener(engine);
 		
-		btnFileNew.addActionListener(this);
-		btnFileRename.addActionListener(this);
-		btnFileDelete.addActionListener(this);
+		btnFileNew.addActionListener(engine);
+		btnFileRename.addActionListener(engine);
+		btnFileDelete.addActionListener(engine);
 		
-		btnSave.addActionListener(this);
-		btnDiscard.addActionListener(this);
-		btnUp.addActionListener(this);
-		btnDown.addActionListener(this);
-		btnDelete.addActionListener(this);
+		btnSave.addActionListener(engine);
+		btnDiscard.addActionListener(engine);
+		btnUp.addActionListener(engine);
+		btnDown.addActionListener(engine);
+		btnDelete.addActionListener(engine);
 		
 	}
 	
-	private void setupTable(){
+	public void setupTable(){
 		
 		table.setModel(new EditableByArgumentTypeModel());
 		table.setSelectionModel(new ForcedListSelectionModel());
-		table.getModel().addTableModelListener(new TableModelListener(){
-
-			@Override
-			public void tableChanged(TableModelEvent e) {
-				
-				if(e.getColumn() == 0){
-					
-					try{
-						
-						ArrayList<String> commands = new ArrayList<>(Arrays.asList(CSVController.loadCommands()));
-	        			ArrayList<String> arguments = new ArrayList<>(Arrays.asList(CSVController.loadArguments()));
-	        			String command = ((DefaultTableModel)table.getModel()).getValueAt(e.getFirstRow(),  0).toString();
-	        			ArrayList<String> secArguments = new ArrayList<>(Arrays.asList(CSVController.loadSecondArguments()));
-	        			
-	        			String argType = "";
-	        			String secArgType = "";
-	        			
-			        	try{
-			        				
-			        		argType = arguments.get(commands.indexOf(command));
-			        		secArgType = secArguments.get(commands.indexOf(command));		
-			        		
-			        	}catch(Exception er){
-			        		
-			        		
-			        		
-			        	}
-			        	
-			        	if(argType.equals(ARGUMENT_TYPE_NONE) || argType.trim().equals("")){
-			        		
-			        		((DefaultTableModel)table.getModel()).setValueAt("", e.getFirstRow(), 1);
-			        		
-			        	}
-			        	
-			        	if(secArgType.equals(ARGUMENT_TYPE_NONE) || argType.trim().equals("")){
-			        		
-			        		((DefaultTableModel)table.getModel()).setValueAt("", e.getFirstRow(), 2);
-			        		
-			        	}
-						
-					}catch(Exception er){
-						
-						
-						
-					}
-					
-				}
-				
-			}
-			
-		});
 		
 		DefaultTableModel model = (DefaultTableModel)table.getModel();
 		
@@ -463,14 +382,10 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 		table.getTableHeader().setReorderingAllowed(false);
 	    table.getTableHeader().setResizingAllowed(false);
 	    table.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
-	    
-	    setupKeyBindings();
-	    
-	    setupColumnTypes();
 	    		
 	}
 	
-	private void setupColumnTypes(){
+	public void setupColumnTypes(){
 		
 		try {
 	    	
@@ -506,7 +421,7 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 	}
 	
 	@SuppressWarnings("serial")
-	private void setupKeyBindings(){
+	public void setupKeyBindings(){
 		
 		table.getInputMap().clear();
 		
@@ -586,6 +501,151 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 
 	    
 	}
+
+	public void moveRowUp(){
+		
+		int row = table.getSelectedRow();
+		
+		if(row > 0){
+			
+			((DefaultTableModel)table.getModel()).moveRow(row, row, row - 1);
+			
+			table.getSelectionModel().setSelectionInterval(row - 1,  row - 1);
+			
+		}
+		
+	}
+	
+	public void moveRowDown(){
+		
+		int row = table.getSelectedRow();
+		
+		if(row < table.getRowCount() - 1){
+			
+			((DefaultTableModel)table.getModel()).moveRow(row, row, row + 1);
+			
+			table.getSelectionModel().setSelectionInterval(row + 1,  row + 1);
+			
+		}
+		
+	}
+	
+	public void deleteRow(){
+		
+		int row = table.getSelectedRow();
+		
+		if(row >= 0){
+								
+			((DefaultTableModel)table.getModel()).removeRow(row);
+			
+		}
+		
+	}
+
+	public void scanFiles(String toSelect){
+		
+		scanning = true;
+		
+		try{
+			
+			fileSelector.removeAllItems();
+			fileSelector.repaint();
+			fileSelector.revalidate();
+			
+			String[] files = CSVController.listScripts();
+			
+			for(String name : files){
+				
+				if(name.endsWith(".csv")){
+					
+					fileSelector.addItem(name.substring(0, name.lastIndexOf(".csv")));
+					
+				}
+				
+			}
+			
+			if(toSelect != null){
+				
+				for(int i = 0; i < fileSelector.getItemCount(); i++){
+					
+					if(toSelect.equals(fileSelector.getItemAt(i))){
+						
+						fileSelector.setSelectedIndex(i);
+						
+					}
+					
+				}
+				
+				lastFileSelected = fileSelector.getSelectedItem().toString();
+				
+			}
+			
+		}catch(Exception e){
+			
+			e.printStackTrace();
+			
+		}
+		
+		scanning = false;
+		
+	}
+			
+	public void clearTable(){
+			
+		try{
+				
+			CellEditor editor = table.getCellEditor();
+				
+			if(editor != null){
+					
+				editor.stopCellEditing();
+					
+			}
+				
+			DefaultTableModel model = (DefaultTableModel) table.getModel();
+ 			   
+			for (int i = model.getRowCount() - 1; i >= 0; i--) {
+ 			  	
+				model.removeRow(i);
+ 			    
+ 		   	}
+				
+		}catch(Exception e){
+				
+				
+				
+		}
+			
+	}
+
+	public void blankRowCorrection(){
+		
+		Integer[] blank = blankRows();
+		
+		while(blank.length > 1){
+			
+			int row = blank[0];
+						
+			if(row != (table.getModel().getRowCount() - 1)){
+				
+				((DefaultTableModel)table.getModel()).removeRow(row);
+				
+			}
+			
+			blank = blankRows();
+			
+		}
+		
+		blank = blankRows();
+		ArrayList<Integer> list = new ArrayList<>(Arrays.asList(blank));
+		
+		if(!list.contains(table.getRowCount() - 1)){
+			
+			((DefaultTableModel)table.getModel()).addRow(new String[]{"", "", ""});
+			
+		}
+		
+	}
 	
 	public static void main(String[] args){
 		
@@ -603,258 +663,12 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 		
 	}
 	
-	@Override
-	public void actionPerformed(ActionEvent e){
-		
-		Object src = e.getSource();
-		
-		if(src == btnEditCommands){
-			
-			new ConfigEditor(this);
-			
-		}else if(src == btnFileNew){
-			
-			try{
-				
-				Object returned = JOptionPane.showInputDialog(new JDialog(), "New file name: ", "Create New File ", JOptionPane.QUESTION_MESSAGE);
-				
-				if(returned != null){
-					
-					if(returned.toString().matches(fileNameRegex)){
-						
-						CSVController.createScript(returned.toString());
-													
-						rescanFiles(returned.toString());
-						
-						setupTable();
-						CSVController.loadScript(returned.toString(), (DefaultTableModel)table.getModel());
-						
-					}else{
-						
-						JOptionPane.showMessageDialog(new JDialog(), "Invalid file name. File names can only contain letters, numbers and dashes or underscores.", "Invalid Name!", JOptionPane.WARNING_MESSAGE);
-						
-					}
-					
-				}
-				
-			}catch(Exception er){
-				
-				
-				
-			}
-			
-		}else if(src == btnFileRename){
-			
-			//new RenameRoutineDialog(this, fileSelector.getSelectedItem().toString());
-			
-			Object returned = JOptionPane.showInputDialog(new JDialog(), "Rename to: ", "Rename '" + fileSelector.getSelectedItem().toString() + "'", JOptionPane.QUESTION_MESSAGE, null, null, fileSelector.getSelectedItem().toString());
-			
-			if(returned != null){
-				
-				if(returned.toString().matches(fileNameRegex)){
-					
-					boolean done = CSVController.renameFile(fileSelector.getSelectedItem().toString(), returned.toString());
-					
-					if(done){
-						
-						rescanFiles(returned.toString());
-						
-					}
-					
-				}else{
-					
-					JOptionPane.showMessageDialog(new JDialog(), "Invalid file name. File names can only contain letters, numbers and dashes or underscores.", "Invalid Name!", JOptionPane.WARNING_MESSAGE);
-					
-				}
-				
-			}
-			
-		}else if(src == btnFileDelete){
-			
-			int returned = JOptionPane.showConfirmDialog(new JDialog(), "Are you sure you want to delete '" + fileSelector.getSelectedItem().toString() + "'?", "Delete?", JOptionPane.YES_NO_OPTION);
-			if(returned == JOptionPane.YES_OPTION){
-				
-				try {
-					
-					CSVController.deleteFile(fileSelector.getSelectedItem().toString());
-					deleteRescanFiles();
-					
-				} catch (Exception er) {er.printStackTrace();}
-				
-				
-			}
-			
-		}else if(src == btnSave){
-			
-			try{
-				
-				CellEditor editor = table.getCellEditor();
-				
-				if(editor != null){
-					
-					editor.stopCellEditing();
-					
-				}
-				
-				CSVController.saveFile(fileSelector.getSelectedItem().toString(), (DefaultTableModel)table.getModel());
-				
-			}catch(Exception er){
-				
-				JOptionPane.showMessageDialog(new JDialog(), "Save failed (is the driver station open?).", "Save Error!", JOptionPane.ERROR_MESSAGE);
-				
-			}
-			
-		}else if(src == btnDiscard){
-						
-			int rtn = JOptionPane.showConfirmDialog(new JDialog(), "Are you sure you want to discard ALL changes since the last save?", "Discard?", JOptionPane.YES_NO_CANCEL_OPTION);
-			
-			if(rtn == JOptionPane.YES_OPTION){
-				
-				try {
-					
-					DefaultTableModel model = (DefaultTableModel) table.getModel();
-     			   
-     			   	for (int i = model.getRowCount() - 1; i >= 0; i--) {
-     			   	
-     			   		model.removeRow(i);
-     			    
-     			   	}
-     			   	
-     			   	setupTable();
-     			   	CSVController.loadScript(fileSelector.getSelectedItem().toString(), model);
-					
-				} catch (Exception er) {}
-				
-			}
-			
-		}else if(src == btnUp){
-			
-			moveRowUp();
-			
-		}else if(src == btnDown){
-			
-			moveRowDown();
-			
-		}else if(src == btnDelete){
-			
-			deleteRow();
-			
-		}
-		
-	}
-	
-	private void moveRowUp(){
-		
-		int row = table.getSelectedRow();
-		
-		if(row > 0){
-			
-			((DefaultTableModel)table.getModel()).moveRow(row, row, row - 1);
-			
-			table.getSelectionModel().setSelectionInterval(row - 1,  row - 1);
-			
-		}
-		
-	}
-	
-	private void moveRowDown(){
-		
-		int row = table.getSelectedRow();
-		
-		if(row < table.getRowCount() - 1){
-			
-			((DefaultTableModel)table.getModel()).moveRow(row, row, row + 1);
-			
-			table.getSelectionModel().setSelectionInterval(row + 1,  row + 1);
-			
-		}
-		
-	}
-	
-	private void deleteRow(){
-		
-		int row = table.getSelectedRow();
-		
-		if(row >= 0){
-								
-			((DefaultTableModel)table.getModel()).removeRow(row);
-			
-		}
-		
-	}
-
-	@Override
-	public void windowActivated(WindowEvent arg0) {}
-
-	@Override
-	public void windowClosed(WindowEvent arg0) {}
-
-	@SuppressWarnings("deprecation")
-	@Override
-	public void windowClosing(WindowEvent e) {
-		
-		int rtn = JOptionPane.showConfirmDialog(new JDialog(), "Save before exit?", "Save?", JOptionPane.YES_NO_CANCEL_OPTION);
-		
-		if(rtn == JOptionPane.YES_OPTION){
-			
-			autoRowThread.suspend();
-			removeBlankRows();
-			
-			try {
-				
-				CellEditor editor = table.getCellEditor();
-				
-				if(editor != null){
-					
-					editor.stopCellEditing();
-					
-				}
-				
-				CSVController.saveFile(fileSelector.getSelectedItem().toString(), (DefaultTableModel)table.getModel());
-				System.exit(0);
-				
-			} catch (Exception er) {
-				
-				int returned = JOptionPane.showConfirmDialog(new JDialog(), "The file was not saved (is the driver station open?). Exit anyways (will discard changes)?", "Save Error!", JOptionPane.ERROR_MESSAGE);
-				er.printStackTrace();
-				if(returned == JOptionPane.YES_OPTION){
-					
-					System.exit(0);
-					
-				}else{
-					
-					autoRowThread.resume();				
-				}
-				
-			}
-			
-			autoRowThread.resume();	
-			
-		}else if(rtn == JOptionPane.NO_OPTION){
-			
-			System.exit(0);
-			
-		}
-		
-	}
-
-	@Override
-	public void windowDeactivated(WindowEvent arg0) {}
-
-	@Override
-	public void windowDeiconified(WindowEvent arg0) {}
-
-	@Override
-	public void windowIconified(WindowEvent arg0) {}
-
-	@Override
-	public void windowOpened(WindowEvent arg0) {}
-	
+	//Internal Classes
 	public class NumbersDocument extends PlainDocument {
 
-		private static final long serialVersionUID = 655037934344680384L;
+		public static final long serialVersionUID = 655037934344680384L;
 		
-		private String text = "";
+		public String text = "";
 
 		@Override
 		public void insertString(int offset, String txt, AttributeSet a) {
@@ -888,10 +702,9 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 		
 	}
 	
-	//Allow only one row to be selected at a time
 	public class ForcedListSelectionModel extends DefaultListSelectionModel {
 
-		private static final long serialVersionUID = -7073835059132006928L;
+		public static final long serialVersionUID = -7073835059132006928L;
 
 		public ForcedListSelectionModel () {
 		    	
@@ -917,7 +730,7 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 	
 	public class ArgumentCellRenderer extends DefaultTableCellRenderer {
 		
-		private static final long serialVersionUID = 3921019133712008509L;
+		public static final long serialVersionUID = 3921019133712008509L;
 
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 	    	
@@ -931,9 +744,9 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 	
 	public class EditableByArgumentTypeModel extends DefaultTableModel {
 		
-		private static final long serialVersionUID = -3260475730036854273L;
+		public static final long serialVersionUID = -3260475730036854273L;
 
-		private EditableByArgumentTypeModel() {
+		public EditableByArgumentTypeModel() {
 	    	
 	        super();
 	        
@@ -1017,307 +830,5 @@ public class ScriptCrafter extends JFrame implements ActionListener, WindowListe
 	    }
 	    
 	}
-
-	@Override
-	public void commandsChanged() {
-		
-		setupColumnTypes();
-		
-	}
-	
-	//Create a list of routine files
-	private void scanFiles(){			
-			scanning = true;
-			String[] fileNames = CSVController.listScripts(); //list file names
-			
-			for(String name : fileNames){
-				
-				if(name.endsWith(".csv")){
-					
-					fileSelector.addItem(name.substring(0, name.lastIndexOf(".csv"))); //Add name without .csv
-					
-				}
-				
-			}
-			
-			scanning = false;
-			
-		}
-		
-		//scan files by refresh button (need to clear combobox and table)
-		public void rescanFiles(){
-			
-			scanning = true;
-			
-			String currentlySelected = (String) fileSelector.getSelectedItem(); //Get currently selected name
-			
-			String[] fileNames = CSVController.listScripts(); //List file Names
-			
-			//Clear Drop-down Items
-			fileSelector.removeAllItems();
-			fileSelector.repaint();
-			fileSelector.revalidate();
-			
-			for(String name : fileNames){
-				
-				if(name.endsWith(".csv")){
-					
-					fileSelector.addItem(name.substring(0, name.lastIndexOf(".csv"))); //Add each csv file without .csv
-					
-				}
-				
-			}
-			
-			//Reselect currentlySelected if it exists
-			for(int i = 0; i < fileSelector.getItemCount(); i++){
-				
-				if(((String) fileSelector.getItemAt(i)).equals(currentlySelected)){
-					
-					fileSelector.setSelectedIndex(i);
-					
-				}
-				
-			}
-			
-			//Create file and select if it does not exist
-			if(!currentlySelected.equals(fileSelector.getSelectedItem().toString())){
-				
-				try{
-					
-					CSVController.createScript(currentlySelected);
-					rescanFiles(currentlySelected);
-					
-				}catch(Exception e){}
-				
-			}
-			
-			scanning = false;
-			
-		}
-		
-		//scan files after a delete
-		public void deleteRescanFiles(){
-			
-			scanning = true;
-				
-				String currentlySelected = (String) fileSelector.getSelectedItem(); //Get currently selected name
-				
-				String[] fileNames = CSVController.listScripts(); //List file Names
-				
-				//Clear Drop-down Items
-				fileSelector.removeAllItems();
-				fileSelector.repaint();
-				fileSelector.revalidate();
-				
-				for(String name : fileNames){
-					
-					if(name.endsWith(".csv")){
-						
-						fileSelector.addItem(name.substring(0, name.lastIndexOf(".csv"))); //Add each csv file without .csv
-						
-					}
-					
-				}
-				
-				if(fileSelector.getItemCount() == 0){
-					
-					try {
-						
-						CSVController.createScript("DUMMY");
-						
-					} catch (Exception e) {}
-					
-					rescanFiles();
-					
-				}
-				
-				//Clear table if it doesn't exist anymore
-				if(!currentlySelected.equals(fileSelector.getSelectedItem().toString())){
-					
-				   //Clear the table
-	 			   DefaultTableModel model = (DefaultTableModel) table.getModel();
-	 			   
-	 			   for (int i = model.getRowCount() - 1; i >= 0; i--) {
-	 			   	
-	 				   model.removeRow(i);
-	 			    
-	 			   }
-	 			   
-	 			   try{
-	 				   
-	 				   setupTable();
-	 				   CSVController.loadScript(fileSelector.getSelectedItem().toString(), (DefaultTableModel)table.getModel());
-	 				   
-	 			   }catch(Exception e){
-	 				   
-	 				   
-	 				   
-	 			   }
-					
-				}
-				
-				scanning = false;
-				
-			}
-		
-		
-		public void rescanFiles(String toSelect){
-			
-			scanning = true;
-			
-			String currentlySelected = toSelect; //Which file to select
-			
-			System.out.println("'" + toSelect + "'");
-						
-			String[] fileNames = CSVController.listScripts(); //List all file names
-			
-			//Clear drop-down
-			fileSelector.removeAllItems();
-			fileSelector.repaint();
-			fileSelector.revalidate();
-			
-			for(String name : fileNames){
-				
-				if(name.endsWith(".csv")){
-					
-					fileSelector.addItem(name.substring(0, name.lastIndexOf(".csv"))); //Add all csv files without .csv
-					
-				}
-				
-			}
-			
-			//Select the file
-			for(int i = 0; i < fileSelector.getItemCount(); i++){
-				
-				if(((String) fileSelector.getItemAt(i)).equals(currentlySelected)){
-					
-					fileSelector.setSelectedIndex(i);
-					
-				}
-				
-			}
-			
-			//Create file and select if it does not exist
-			if(!currentlySelected.equals(fileSelector.getSelectedItem().toString())){
-						
-				try{
-							
-					CSVController.createScript(currentlySelected);
-					rescanFiles();
-							
-				}catch(Exception e){
-						
-						
-						
-				}
-						
-			}
-			
-			scanning = false;
-			
-		}
-		
-		@Override
-	    public void itemStateChanged(ItemEvent e) {
-			
-			Object src = e.getSource();
-			
-	       if(src == fileSelector && !scanning){ //If file selector
-	    	   
-	    	   if (e.getStateChange() == ItemEvent.SELECTED) { //if something selected
-	        	   
-	    		   String newItem = (String) fileSelector.getSelectedItem();
-	    		   
-	    		   if(newItem != null){
-	    			   
-	    			   if(!newItem.equals(lastFileSelected)){ //if it is not the same
-	        			   
-	        			   //Clear the table
-	        			   DefaultTableModel model = (DefaultTableModel) table.getModel();
-	        			   
-	        			   for (int i = model.getRowCount() - 1; i >= 0; i--) {
-	        			   	
-	        				   model.removeRow(i);
-	        			    
-	        			   }
-	        			   
-	        			   //load the data
-	        			try {
-	        				
-	        				setupTable();
-							CSVController.loadScript(fileSelector.getSelectedItem().toString(), (DefaultTableModel) table.getModel());
-							((DefaultTableModel)table.getModel()).addRow(new String[]{"", "", ""});
-							
-						} catch (Exception e1) {}
-	        			   
-	        		   }
-	    			   
-	    		   }else{
-	    			   	    				
-	    				try{
-	    									
-	    					CSVController.createScript("DUMMY");
-	    					
-	    				}catch(Exception ex){
-	    					
-	    					
-	    				}
-	    			   
-	    		   }
-	    	          
-	           }
-	    	   
-	       }
-	       
-	    }
-
-		@Override
-		public void popupMenuCanceled(PopupMenuEvent arg0) {}
-
-		@Override
-		public void popupMenuWillBecomeInvisible(PopupMenuEvent arg0) {}
-
-		@SuppressWarnings("deprecation")
-		@Override
-		public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-			
-			rescanFiles(fileSelector.getSelectedItem().toString());
-			
-			//int rtn = JOptionPane.showConfirmDialog(new JDialog(), "Save before continue?", "Save?", JOptionPane.YES_NO_OPTION);
-			int rtn = JOptionPane.YES_OPTION;
-			if(rtn == JOptionPane.YES_OPTION){
-				
-				autoRowThread.suspend();
-				removeBlankRows();
-				
-				try {
-					
-					CellEditor editor = table.getCellEditor();
-					
-					if(editor != null){
-						
-						editor.stopCellEditing();
-						
-					}
-					
-					CSVController.saveFileQuiet(fileSelector.getSelectedItem().toString(), (DefaultTableModel)table.getModel());
-					
-				} catch (Exception er) {
-					
-					JOptionPane.showMessageDialog(new JDialog(), "The file was not saved (is the driver station open?).", "Save Error!", JOptionPane.ERROR_MESSAGE);
-					er.printStackTrace();
-					
-					
-				}
-				
-				autoRowThread.resume();	
-				
-			}else if(rtn == JOptionPane.NO_OPTION){
-				
-				
-			
-			}
-			
-		}
 	
 }

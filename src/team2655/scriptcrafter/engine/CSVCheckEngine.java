@@ -127,7 +127,7 @@ public class CSVCheckEngine {
 				
 			}catch(NumberFormatException e){
 				
-				e.printStackTrace();
+				
 				
 			}
 			

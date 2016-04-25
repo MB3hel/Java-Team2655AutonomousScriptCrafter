@@ -17,6 +17,7 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
+import team2655.scriptcrafter.gui.ScriptCrafter;
 import team2655.scriptcrafter.values.Values;
 
 public class CSVController implements Values{
@@ -37,6 +38,12 @@ public class CSVController implements Values{
 		for(File file : files){
 			
 			for(File dir : routineDirsBackups){
+				
+				if(!dir.exists()){
+					
+					dir.mkdirs();
+					
+				}
 				
 				try {
 					
@@ -67,6 +74,12 @@ public class CSVController implements Values{
 	public static void createScript(String name) throws IOException{
 				
 		for(File dir : routineDirs){
+			
+			if(!dir.exists()){
+				
+				dir.mkdir();
+				
+			}
 			
 			File script = new File(dir.getAbsolutePath() + "/" + name + ".csv");
 			
@@ -208,21 +221,10 @@ public class CSVController implements Values{
 		
 	}
 	
-	public static void loadScript(String name, DefaultTableModel model) throws FileNotFoundException, IOException{
+	public static void loadScript(String name, DefaultTableModel model, ScriptCrafter crafter) throws FileNotFoundException, IOException{
 
-		for(int r = 0; r < model.getRowCount();r++){
-			
-			model.removeRow(r);
-			
-		}
-		
-		try{Thread.sleep(100);}catch(Exception e){}
-		
-		for(int r = 0; r < model.getRowCount();r++){
-			
-			model.removeRow(r);
-			
-		}
+		crafter.clearTable();
+		crafter.removeBlankRows();
 		
 		File script = new File(routinesDir.getAbsolutePath() + "/" + name + ".csv");
 		
@@ -263,6 +265,8 @@ public class CSVController implements Values{
 			}
 			
 		}
+		
+		crafter.blankRowCorrection();
 		
 		checkScript(name, loadCommands(), loadArguments(), loadSecondArguments());
 		
@@ -480,19 +484,6 @@ public class CSVController implements Values{
 		return args.toArray(new String[args.size()]);
 		
 	}
-	
-	/*public static int loadNumberOfArguments() throws IOException, FileNotFoundException{
-		
-		File config = new File(routinesDir.getAbsolutePath() + "/scriptcrafter.config");
-		
-		BufferedReader in = new BufferedReader(new FileReader(config));
-				
-		String line = in.readLine(); //READ THE NUMBER LINE
-		
-		in.close();
-		
-		return Integer.parseInt(line.split(",")[1]);
-		
-	}*/
+
 
 }

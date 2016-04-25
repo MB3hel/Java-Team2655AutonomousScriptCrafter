@@ -45,7 +45,7 @@ public class ConfigEditor extends JDialog implements WindowListener, Values, Act
 	private static final long serialVersionUID = 889547632847065343L;
 	private JScrollPane scrollPane;
 	private JTable table;
-	private ScriptCrafter scriptCrafter;
+	private CommandsListener listener;
 	private JPanel bottomPanel;
 	private JButton btnSave;
 	private JButton btnDiscard;
@@ -55,9 +55,9 @@ public class ConfigEditor extends JDialog implements WindowListener, Values, Act
 		
 	Thread autoRowThread;
 	
-	public ConfigEditor(ScriptCrafter scriptCrafter){
+	public ConfigEditor(CommandsListener listener){
 		
-		this.scriptCrafter = scriptCrafter;
+		this.listener = listener;
 		
 		table = new JTable();
 		table.setPreferredScrollableViewportSize(new Dimension(500, 300));
@@ -539,7 +539,7 @@ public class ConfigEditor extends JDialog implements WindowListener, Values, Act
 				
 				CSVController.saveConfigFile(getCommands(), getArguments(), getArgumentNames(), getSecondArguments(), getSecondArgumentNames());
 				
-				((CommandsListener)scriptCrafter).commandsChanged();
+				listener.commandsChanged();
 				this.dispose();
 				
 			} catch (Exception er) {
@@ -566,32 +566,6 @@ public class ConfigEditor extends JDialog implements WindowListener, Values, Act
 		}
 		
 	}
-	
-	/*autoRowThread.stop();
-		
-		removeBlankRows();
-		
-		try{
-			
-			CellEditor editor = table.getCellEditor();
-			
-			if(editor != null){
-				
-				editor.stopCellEditing();
-				
-			}
-			
-			CSVController.saveConfigFile(getCommands(), getArguments(), getArgumentNames(), getSecondArguments(), getSecondArgumentNames());
-			
-			((CommandsListener)scriptCrafter).commandsChanged();
-			
-		}catch(Exception e){
-			
-			
-			
-		}
-		
-		this.dispose();*/
 
 	@Override
 	public void windowDeactivated(WindowEvent arg0) {}
@@ -737,7 +711,7 @@ public class ConfigEditor extends JDialog implements WindowListener, Values, Act
 				
 				CSVController.saveConfigFile(getCommands(), getArguments(), getArgumentNames(), getSecondArguments(), getSecondArgumentNames());
 				
-				((CommandsListener)scriptCrafter).commandsChanged();
+				listener.commandsChanged();
 				
 			} catch (Exception er) {
 				
