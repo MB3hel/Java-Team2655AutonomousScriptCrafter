@@ -5,6 +5,7 @@
  * Version 1.0.4: When a new file is created it is loaded(item event is handeled by createrescanFiles function)
  * Version 2.0.0: Main classes have a gui and listener split, autoRow is not handeled by a thread but by a table model listener config editor changes, can resize rows, 
  * Version 2.0.1: Crafter opens before loading and checking script so script can be seen when check error dialog pops up
+ * Version 2.0.2: After a file is deleted the new file is loaded.
  */
 
 
