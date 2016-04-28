@@ -108,6 +108,7 @@ public class ScriptCrafterEngine implements ActionListener, WindowListener, Valu
 					
 					CSVController.deleteFile(crafter.fileSelector.getSelectedItem().toString());
 					crafter.scanFiles(null);
+					CSVController.loadScript(crafter.fileSelector.getSelectedItem().toString(), (DefaultTableModel) crafter.table.getModel(), crafter);
 					
 				} catch (Exception er) {er.printStackTrace();}
 				
