@@ -54,11 +54,19 @@ public class ScriptCrafterEngine implements ActionListener, WindowListener, Valu
 					if(returned.toString().matches(FILE_NAME_PATTERN)){
 						
 						CSVController.createScript(returned.toString());
-						CSVController.saveFileQuiet(crafter.fileSelector.getSelectedItem().toString(), (DefaultTableModel)crafter.table.getModel());
 						
-						crafter.scanFiles(returned.toString());
+						try{
+							
+							CSVController.saveFileQuiet(crafter.fileSelector.getSelectedItem().toString(), (DefaultTableModel)crafter.table.getModel());
+						
+						}catch(Exception error){
+							
+							System.out.println(error.getClass().getName() + ": " + error.getMessage());
+							
+						}
 						
 						crafter.clearTable();
+						crafter.scanFiles(returned.toString());
 						CSVController.loadScript(returned.toString(), (DefaultTableModel)crafter.table.getModel(), crafter);
 						
 					}else{
@@ -71,7 +79,9 @@ public class ScriptCrafterEngine implements ActionListener, WindowListener, Valu
 				
 			}catch(Exception er){
 				
-				
+				System.out.println("ERROR AT CREATE.....:::::\n\n\n");
+				er.printStackTrace();
+				System.out.println("END.....:::::\n\n\n\n\n");
 				
 			}
 			

@@ -585,6 +585,7 @@ public class ScriptCrafter extends JFrame implements Values {
 			
 		}catch(Exception e){
 			
+			System.out.println("ERROR HERE!!!");
 			e.printStackTrace();
 			
 		}
