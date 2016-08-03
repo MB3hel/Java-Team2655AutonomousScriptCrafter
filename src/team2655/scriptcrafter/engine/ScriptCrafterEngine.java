@@ -61,7 +61,7 @@ public class ScriptCrafterEngine implements ActionListener, WindowListener, Valu
 						
 						}catch(Exception error){
 							
-							System.out.println(error.getClass().getName() + ": " + error.getMessage());
+							System.out.println(error.getClass().getName() + ": " + error.getMessage()); 
 							
 						}
 						
