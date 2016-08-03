@@ -15,9 +15,9 @@ For linux or MAC OS X download the jar file. NOTE:You will need java installed.
 *   Download the latest [Java JDK](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) and install it and add javac to the path.
 *   Clone or download the repository and open a command prompt or terminal window in the src directory where it weas cloned.
 *   Type the following commands
-    *   <pre>javac ./*/*/*.java</pre>
 
-    *   <pre>java ./team2655/scriptcrafter/gui/ScriptCrafter</pre>
+        javac ./*/*/*.java
+        java ./team2655/scriptcrafter/gui/ScriptCrafter
 
 *   (OPTIONAL)To Package a jar file:
 
