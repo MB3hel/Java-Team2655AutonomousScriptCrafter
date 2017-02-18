@@ -120,7 +120,9 @@ public class ScriptCrafterEngine implements ActionListener, WindowListener, Valu
 					crafter.scanFiles(null);
 					CSVController.loadScript(crafter.fileSelector.getSelectedItem().toString(), (DefaultTableModel) crafter.table.getModel(), crafter);
 					
-				} catch (Exception er) {er.printStackTrace();}
+				} catch (Exception er) {er.printStackTrace();
+					crafter.clearTable();
+				}
 				
 				
 			}
@@ -163,7 +165,9 @@ public class ScriptCrafterEngine implements ActionListener, WindowListener, Valu
      			   	
      			   	CSVController.loadScript(crafter.fileSelector.getSelectedItem().toString(), model, crafter);
 					
-				} catch (Exception er) {}
+				} catch (Exception er) {
+					crafter.clearTable();
+				}
 				
 			}
 			
@@ -278,7 +282,9 @@ public class ScriptCrafterEngine implements ActionListener, WindowListener, Valu
 							CSVController.loadScript(crafter.fileSelector.getSelectedItem().toString(), (DefaultTableModel) crafter.table.getModel(), crafter);
 							crafter.lastFileSelected = crafter.fileSelector.getSelectedItem().toString();
 						
-						} catch (Exception er) {}
+						} catch (Exception er) {
+							crafter.clearTable();
+						}
         			   	        				
 					}
     			   

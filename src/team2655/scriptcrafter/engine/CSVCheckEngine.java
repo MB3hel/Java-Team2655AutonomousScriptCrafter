@@ -16,6 +16,7 @@ public class CSVCheckEngine {
 	String[] secArgTypes;
 	
 	int commandIndex = 0;
+	String thisCommand = "";
 	
 	public CSVCheckEngine(String[] commands, String[] argumentTypes, String[] secArgTypes){
 		
@@ -95,6 +96,7 @@ public class CSVCheckEngine {
 				
 				isCommand = true;
 				commandIndex = i;
+				thisCommand = command;
 				
 			}
 			
@@ -111,7 +113,7 @@ public class CSVCheckEngine {
 		String shouldBe = argumentTypes[commandIndex];
 		
 		
-		if((shouldBe.equals(ARGUMENT_TYPE_NONE) && (argument.equals("") || argument.equals(" "))) || commands[commandIndex].trim().equals("")){
+		if((shouldBe.equals(ARGUMENT_TYPE_NONE) && (argument.equals("") || argument.equals(" "))) || thisCommand.trim().equals("")){
 			
 			isArgument = true;
 		
@@ -143,7 +145,7 @@ public class CSVCheckEngine {
 		
 		String shouldBe = secArgTypes[commandIndex];
 		
-		if((shouldBe.equals(ARGUMENT_TYPE_NONE) && (argument.equals("") || argument.equals(" "))) || commands[commandIndex].trim().equals("")){
+		if((shouldBe.equals(ARGUMENT_TYPE_NONE) && (argument.equals("") || argument.equals(" "))) || thisCommand.trim().equals("")){
 			
 			isArgument = true;
 		
