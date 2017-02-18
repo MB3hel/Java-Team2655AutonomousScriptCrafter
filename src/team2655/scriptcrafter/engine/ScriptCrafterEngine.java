@@ -129,6 +129,42 @@ public class ScriptCrafterEngine implements ActionListener, WindowListener, Valu
 			
 		}else if(src == crafter.btnSave){
 			
+			Object selectedItem = crafter.fileSelector.getSelectedItem();
+			if(selectedItem == null){
+				selectedItem = "";
+			}
+			
+			if(selectedItem.toString().trim().equals("")){
+				try{
+					
+					Object returned = JOptionPane.showInputDialog(new JDialog(), "New file name: ", "Create New File ", JOptionPane.QUESTION_MESSAGE);
+					
+					if(returned != null){
+						
+						if(returned.toString().matches(FILE_NAME_PATTERN)){
+							
+							CSVController.createScript(returned.toString());
+							
+							crafter.scanFiles(returned.toString());
+							
+						}else{
+							
+							JOptionPane.showMessageDialog(new JDialog(), "Invalid file name. File names can only contain letters, numbers and dashes or underscores.", "Invalid Name!", JOptionPane.WARNING_MESSAGE);
+							
+						}
+						
+					}
+					
+				}catch(Exception er){
+					
+					System.out.println("ERROR AT CREATE.....:::::\n\n\n");
+					er.printStackTrace();
+					System.out.println("END.....:::::\n\n\n\n\n");
+					
+				}
+			}
+			
+			
 			try{
 				
 				CellEditor editor = crafter.table.getCellEditor();
