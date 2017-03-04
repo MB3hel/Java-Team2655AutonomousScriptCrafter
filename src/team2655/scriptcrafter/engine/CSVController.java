@@ -273,7 +273,6 @@ public class CSVController implements Values{
 		}
 		
 		crafter.blankRowCorrection();
-		
 		checkScript(name, loadCommands(), loadArguments(), loadSecondArguments());
 		
 	}
@@ -288,7 +287,7 @@ public class CSVController implements Values{
 		
 		CSVCheckEngine checkEngine = new CSVCheckEngine(commands, arguments, secArgs);
 		String message = checkEngine.checkFile(new File(routinesDir.getAbsolutePath()+ "/" + scriptName + ".csv"));
-		
+		System.out.println("OUT: " + message);
 		if(!message.trim().equals("")){
 			
 			JOptionPane.showMessageDialog(new JDialog(), message, "File Error!", JOptionPane.WARNING_MESSAGE);

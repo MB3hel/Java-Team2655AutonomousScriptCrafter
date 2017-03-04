@@ -38,9 +38,9 @@ public class CSVCheckEngine {
 			
 			String[] columns = lines.get(row).split(","); //Get csv columns
 			
-			boolean commandCorrect = checkCommand(columns[0]); //Check command MUST BE FIRST
-			boolean argumentCorrect = checkArgument(columns[1]); //Check argument
-			boolean secondArg = checkSecondArgument(columns[2]); //Check 2nd arg
+			boolean commandCorrect = (columns.length >= 1) ? checkCommand(columns[0]) : false; //Check command MUST BE FIRST
+			boolean argumentCorrect = (columns.length >= 2) ? checkArgument(columns[1]) : false; //Check argument
+			boolean secondArg = (columns.length >= 3) ? checkSecondArgument(columns[2]) : false; //Check 2nd arg
 			
 			if(!commandCorrect)
 				dataString += "Line " + String.valueOf(row + 1) + ": Command Invalid!\n"; //Add error message
@@ -78,7 +78,7 @@ public class CSVCheckEngine {
 			return lines;
 			
 		}catch(Exception e){
-			
+			e.printStackTrace();
 			return null;
 			
 		}
