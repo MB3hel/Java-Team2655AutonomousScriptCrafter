@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,8 +33,6 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.PlainDocument;
-
-import com.sun.glass.events.KeyEvent;
 
 import team2655.scriptcrafter.engine.CSVController;
 import team2655.scriptcrafter.engine.ConfigEditorEngine;

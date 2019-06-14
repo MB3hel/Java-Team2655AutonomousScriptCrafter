@@ -6,6 +6,7 @@
  * Version 2.0.0: Main classes have a gui and listener split, autoRow is not handeled by a thread but by a table model listener config editor changes, can resize rows, 
  * Version 2.0.1: Crafter opens before loading and checking script so script can be seen when check error dialog pops up
  * Version 2.0.2: After a file is deleted the new file is loaded.
+ * Version 2.1.0: Updated to be compatible with java 8+
  */
 
 
@@ -18,6 +19,7 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,8 +51,6 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.PlainDocument;
-
-import com.sun.glass.events.KeyEvent;
 
 import team2655.scriptcrafter.engine.CSVController;
 import team2655.scriptcrafter.engine.ScriptCrafterEngine;
