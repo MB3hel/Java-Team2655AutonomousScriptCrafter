@@ -16,8 +16,14 @@ For linux or MAC OS X download the jar file. NOTE:You will need java installed.
 *   Clone or download the repository and open a command prompt or terminal window in the src directory where it weas cloned.
 *   Type the following commands
 
-        javac ./*/*/*.java
-        java ./team2655/scriptcrafter/gui/ScriptCrafter
+	# Windows only
+	dir /s /B *.java > sources.txt
+	
+	# Linux/macOS only
+	find -name "*.java" > sources.txt
+
+        javac -d bin @sources.txt
+        java -cp bin ./team2655/scriptcrafter/gui/ScriptCrafter
 
 *   (OPTIONAL)To Package a jar file:
 

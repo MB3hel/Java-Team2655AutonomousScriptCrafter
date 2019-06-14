@@ -1,4 +1,0 @@
-Manifest-Version: 1.0
-Created-By: 1.8.0_74 (Oracle Corporation)
-Main-Class: team2655.scriptcrafter.gui.ScriptCrafter
-
